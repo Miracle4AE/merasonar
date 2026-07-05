@@ -62,9 +62,9 @@ def find_flutter() -> Path | None:
 def check_flutter_available() -> None:
     flutter = find_flutter()
     if flutter is None:
-        fail(
-            "Flutter not found. Set FLUTTER_BIN or add Flutter to PATH "
-            "(puro default: %USERPROFILE%\\.puro\\envs\\stable\\flutter\\bin\\flutter.bat)."
+        warn(
+            "Flutter not found on PATH (OK on CI before flutter-action; "
+            "local builds: set FLUTTER_BIN or use scripts/flutter_exec.bat)."
         )
         return
     print(f"  flutter: {flutter}")
