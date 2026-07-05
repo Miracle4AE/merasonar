@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:ui' as ui;
 
+import 'package:deniz_app/domain/dashboard_map_preview_projection.dart';
 import 'package:deniz_app/domain/dashboard_overview.dart';
 import 'package:deniz_app/l10n/app_strings_tr.dart';
 import 'package:deniz_app/widgets/dashboard/v2/dashboard_v2_map_card.dart';
@@ -15,12 +16,6 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   testWidgets('export dashboard-map-preview-reference-redesign.png', (tester) async {
-    const outEnv = String.fromEnvironment('DASH_MAP_QA_OUT');
-    final outDir = outEnv.isNotEmpty
-        ? Directory(outEnv)
-        : Directory(p.join(Directory.current.path, '..', 'docs', 'screenshots', 'rc1'));
-    if (!outDir.existsSync()) outDir.createSync(recursive: true);
-
     const data = DashboardMapPreviewData(
       centerLat: 37.395,
       centerLon: 27.195,
@@ -108,15 +103,115 @@ void main() {
     );
     await tester.pump();
 
-    final boundary = tester.renderObject(find.byKey(const Key('map_preview_export')))
-        as RenderRepaintBoundary;
-    final outPath = p.join(outDir.path, 'dashboard-map-preview-reference-redesign.png');
-    await tester.binding.runAsync(() async {
-      final image = await boundary.toImage(pixelRatio: 1.5);
-      final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
-      await File(outPath).writeAsBytes(bytes!.buffer.asUint8List());
-    });
+    final outPath = await _savePng(
+      tester,
+      'dashboard-map-preview-reference-redesign.png',
+    );
 
     expect(File(outPath).existsSync(), isTrue);
   });
+
+  testWidgets('export dashboard-map-preview-runtime-cluster-fixed.png', (tester) async {
+    final layout = DashboardMapPreviewProjection.buildPreviewLayout(
+      markers: _runtimeLikeClusterMarkers(),
+      selectedMarkerId: 'selected',
+    );
+
+    final data = DashboardMapPreviewData(
+      centerLat: 37.390,
+      centerLon: 27.190,
+      centerLabel: '37.3900, 27.1900',
+      score: 37,
+      updatedAgoLabel: '1 dk',
+      hasRealCoordinate: true,
+      displayMode: DashboardMapPreviewMode.activeReport,
+      selectedMarkerId: 'selected',
+      dataSourceLabel: kPremiumDashMapSourceReport,
+      depthLegendMinLabel: kPremiumDashMapDepthMin,
+      depthLegendMaxLabel: kPremiumDashMapDepthMax,
+      waveLabel: '0.5 m',
+      currentLabel: '0.22 m/s',
+      isCompactCluster: layout.assessment.isCompactCluster,
+      hiddenMarkerCount: layout.hiddenMarkerCount,
+      markers: layout.markers,
+    );
+
+    await tester.binding.setSurfaceSize(const Size(520, 320));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: SizedBox(
+              width: 480,
+              height: 280,
+              child: RepaintBoundary(
+                key: const Key('map_preview_export'),
+                child: DashboardV2MapCard(data: data, onTap: () {}),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final outPath = await _savePng(
+      tester,
+      'dashboard-map-preview-runtime-cluster-fixed.png',
+    );
+
+    expect(File(outPath).existsSync(), isTrue);
+    expect(layout.assessment.isCompactCluster, isTrue);
+    expect(layout.hiddenMarkerCount, greaterThan(0));
+  });
+}
+
+Future<String> _savePng(WidgetTester tester, String fileName) async {
+  const outEnv = String.fromEnvironment('DASH_MAP_QA_OUT');
+  final outDir = outEnv.isNotEmpty
+      ? Directory(outEnv)
+      : Directory(
+          p.join(Directory.current.path, '..', 'docs', 'screenshots', 'rc1'),
+        );
+  if (!outDir.existsSync()) outDir.createSync(recursive: true);
+
+  final boundary = tester.renderObject(find.byKey(const Key('map_preview_export')))
+      as RenderRepaintBoundary;
+  final outPath = p.join(outDir.path, fileName);
+  await tester.binding.runAsync(() async {
+    final image = await boundary.toImage(pixelRatio: 1.5);
+    final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+    await File(outPath).writeAsBytes(bytes!.buffer.asUint8List());
+  });
+  return outPath;
+}
+
+List<DashboardMapMarker> _runtimeLikeClusterMarkers() {
+  const baseLat = 37.390000;
+  const baseLon = 27.190000;
+  return [
+    const DashboardMapMarker(
+      normalizedX: 0,
+      normalizedY: 0,
+      id: 'selected',
+      lat: baseLat,
+      lon: baseLon,
+      score: 37,
+      isSelected: true,
+      isPrimary: true,
+      markerType: DashboardMapMarkerType.hotspot,
+    ),
+    for (var i = 1; i <= 9; i++)
+      DashboardMapMarker(
+        normalizedX: 0,
+        normalizedY: 0,
+        id: 'low_$i',
+        lat: baseLat + i * 0.000001,
+        lon: baseLon + i * 0.000001,
+        score: 1,
+        markerType: DashboardMapMarkerType.hotspot,
+      ),
+  ];
 }

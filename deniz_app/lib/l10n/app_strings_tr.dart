@@ -1103,6 +1103,8 @@ const String kPremiumDashMapCompareCta = 'Karşılaştır';
 const String kPremiumDashMapDepthMin = '0 m';
 const String kPremiumDashMapDepthMax = '100+ m';
 const String kPremiumDashMapLowConfidence = 'Kalibrasyon düşük güven';
+const String kPremiumDashMapCompactCluster = 'Yakın küme görünümü';
+const String kPremiumDashMapLowScoreSummary = '+{count} düşük skor';
 const String kPremiumDashMapEmptyNeedsAnalysis =
     'Son koordinat alındı, skor noktaları için analiz gerekli.';
 const String kPremiumDashMapEmptyNoGeo =

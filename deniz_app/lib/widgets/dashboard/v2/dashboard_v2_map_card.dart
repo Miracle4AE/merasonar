@@ -45,7 +45,7 @@ class DashboardV2MapCard extends StatelessWidget {
             true);
 
     final scorableMarkers =
-        data.markers.where((m) => m.hasScoreOrb).take(8).toList(growable: false);
+        data.markers.where((m) => m.hasScoreOrb).toList(growable: false);
 
     return PremiumCard(
       glow: true,
@@ -87,6 +87,18 @@ class DashboardV2MapCard extends StatelessWidget {
                     top: AppSpacing.sm,
                     right: AppSpacing.sm,
                     child: _lowConfidenceChip(),
+                  ),
+                if (data.isCompactCluster && data.hasRealData)
+                  Positioned(
+                    top: data.isLowConfidence ? 40 : AppSpacing.sm,
+                    right: AppSpacing.sm,
+                    child: _compactClusterChip(),
+                  ),
+                if (data.hiddenMarkerCount > 0 && data.hasRealData)
+                  Positioned(
+                    top: data.isCompactCluster || data.isLowConfidence ? 70 : 40,
+                    right: AppSpacing.sm,
+                    child: _hiddenMarkersChip(),
                   ),
                 if (data.dataSourceLabel != null &&
                     data.hasRealData &&
@@ -289,6 +301,47 @@ class DashboardV2MapCard extends StatelessWidget {
         style: AppTextStyles.caption.copyWith(
           fontSize: 10,
           color: AppColors.accentAmber,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  Widget _compactClusterChip() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.borderCyan.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: AppColors.borderCyan.withValues(alpha: 0.35)),
+      ),
+      child: Text(
+        kPremiumDashMapCompactCluster,
+        style: AppTextStyles.caption.copyWith(
+          fontSize: 10,
+          color: AppColors.borderCyan,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  Widget _hiddenMarkersChip() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceDark.withValues(alpha: 0.82),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: AppColors.borderSoft(alpha: 0.2)),
+      ),
+      child: Text(
+        kPremiumDashMapLowScoreSummary.replaceAll(
+          '{count}',
+          '${data.hiddenMarkerCount}',
+        ),
+        style: AppTextStyles.caption.copyWith(
+          fontSize: 10,
+          color: AppColors.textSecondary,
           fontWeight: FontWeight.w600,
         ),
       ),

@@ -7,6 +7,7 @@
 | File | Status | Platform | Build | Notes |
 |------|--------|----------|-------|-------|
 | `dashboard-map-preview-reference-redesign.png` | **Passed** | Widget export | RC1 Build9.7 | Premium dark geo score preview; real-lat/lon projection path; selected marker reticle; no fake score marker |
+| `dashboard-map-preview-runtime-cluster-fixed.png` | **Passed** | Widget export | RC1 Build9.7.1 | Runtime-like compact cluster fixture; selected score 37 centered; low-score markers capped; +N badge; no top-right chain |
 
 **Capture command:**
 ```powershell

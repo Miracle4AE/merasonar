@@ -270,6 +270,48 @@ void main() {
       expect(find.text(kPremiumDashMapLowConfidence), findsOneWidget);
     });
 
+    testWidgets('compact cluster chip and hidden marker summary render', (tester) async {
+      await tester.pumpWidget(
+        _mapCardHarness(
+          DashboardMapPreviewData(
+            centerLat: 37.39,
+            centerLon: 27.19,
+            hasRealCoordinate: true,
+            isCompactCluster: true,
+            hiddenMarkerCount: 3,
+            selectedMarkerId: 'selected',
+            displayMode: DashboardMapPreviewMode.activeReport,
+            markers: const [
+              DashboardMapMarker(
+                normalizedX: 0.56,
+                normalizedY: 0.46,
+                id: 'selected',
+                lat: 37.39,
+                lon: 27.19,
+                score: 37,
+                isSelected: true,
+                markerType: DashboardMapMarkerType.hotspot,
+              ),
+              DashboardMapMarker(
+                normalizedX: 0.22,
+                normalizedY: 0.34,
+                id: 'low_1',
+                lat: 37.390001,
+                lon: 27.190001,
+                score: 1,
+                markerType: DashboardMapMarkerType.hotspot,
+              ),
+            ],
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.text(kPremiumDashMapCompactCluster), findsOneWidget);
+      expect(find.text('+3 düşük skor'), findsOneWidget);
+      expect(find.text(kPremiumDashScoreLabel), findsOneWidget);
+    });
+
     testWidgets('limited mode shows honest empty message without score chip', (tester) async {
       await tester.pumpWidget(
         _mapCardHarness(

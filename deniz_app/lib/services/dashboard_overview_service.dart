@@ -968,7 +968,7 @@ class DashboardOverviewService {
       );
     }
 
-    for (final h in geoHotspots.take(8)) {
+    for (final h in geoHotspots.take(16)) {
       markers.add(
         DashboardMapMarker(
           normalizedX: 0,
@@ -986,17 +986,20 @@ class DashboardOverviewService {
       );
     }
 
-    var projected = DashboardMapPreviewProjection.applyProjection(markers);
+    final projectedForSelection =
+        DashboardMapPreviewProjection.applyProjection(markers);
     final selectedId = DashboardMapPreviewProjection.selectMarkerId(
-      markers: projected,
+      markers: projectedForSelection,
       explicitSelectedId: recommendedHotspotId,
       centerLat: centerLat,
       centerLon: centerLon,
     );
-    projected = DashboardMapPreviewProjection.markSelected(
-      projected,
-      selectedId: selectedId,
+    final layoutResult = DashboardMapPreviewProjection.buildPreviewLayout(
+      markers: markers,
+      selectedMarkerId: selectedId,
     );
+    var projected = layoutResult.markers;
+    final layoutAssessment = layoutResult.assessment;
 
     DashboardMapPreviewMode displayMode;
     if (hasComparePair) {
@@ -1059,6 +1062,16 @@ class DashboardOverviewService {
           : kPremiumDashMapEmptyInsufficientHotspots;
     }
 
+    assert(() {
+      _debugMapPreview(
+        markers: projected,
+        selectedMarkerId: selectedId,
+        assessment: layoutAssessment,
+        hiddenMarkerCount: layoutResult.hiddenMarkerCount,
+      );
+      return true;
+    }());
+
     return DashboardMapPreviewData(
       centerLat: centerLat,
       centerLon: centerLon,
@@ -1084,6 +1097,32 @@ class DashboardOverviewService {
       depthLegendMaxLabel: kPremiumDashMapDepthMax,
       warningLabel: warningLabel,
       isLowConfidence: isLowConfidence,
+      isCompactCluster: layoutAssessment.isCompactCluster,
+      hiddenMarkerCount: layoutResult.hiddenMarkerCount,
+      layoutDebugLabel: layoutAssessment.debugSummary,
+    );
+  }
+
+  static void _debugMapPreview({
+    required List<DashboardMapMarker> markers,
+    required String? selectedMarkerId,
+    required DashboardMapPreviewLayoutAssessment assessment,
+    required int hiddenMarkerCount,
+  }) {
+    final ids = markers.map((m) => m.id).join(',');
+    final scores = markers.map((m) => '${m.id}:${m.score}').join(',');
+    final coords = markers
+        .map((m) => '${m.id}:${m.lat?.toStringAsFixed(6)},'
+            '${m.lon?.toStringAsFixed(6)}')
+        .join(' | ');
+    final positions = markers
+        .map((m) => '${m.id}:${m.normalizedX.toStringAsFixed(2)},'
+            '${m.normalizedY.toStringAsFixed(2)}')
+        .join(' | ');
+    debugPrint(
+      'DashboardMapPreview runtime: count=${markers.length} hidden=$hiddenMarkerCount '
+      'selected=$selectedMarkerId ids=[$ids] scores=[$scores] '
+      'coords=[$coords] positions=[$positions] ${assessment.debugSummary}',
     );
   }
 

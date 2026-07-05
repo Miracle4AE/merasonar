@@ -145,34 +145,49 @@ class DashboardMapPreviewPainter extends CustomPainter {
   }
 
   void _drawDepthContours(Canvas canvas, Size size) {
-    final center = Offset(size.width * 0.52, size.height * 0.58);
-    for (var ring = 1; ring <= 5; ring++) {
-      final rx = size.width * (0.12 + ring * 0.07);
-      final ry = size.height * (0.08 + ring * 0.055);
-      canvas.drawOval(
-        Rect.fromCenter(center: center, width: rx * 2, height: ry * 2),
-        Paint()
-          ..color = AppColors.borderCyan.withValues(alpha: 0.05 + ring * 0.018)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = ring.isEven ? 1.1 : 0.75,
-      );
-    }
-
-    for (var depth = 0; depth < 6; depth++) {
+    for (var depth = 0; depth < 8; depth++) {
       final path = Path();
-      final baseY = 0.28 + depth * 0.11;
-      path.moveTo(0, size.height * baseY);
+      final baseY = 0.16 + depth * 0.095;
+      path.moveTo(-size.width * 0.05, size.height * baseY);
       for (var x = 0.0; x <= 1.01; x += 0.04) {
-        final wave =
-            math.sin(x * math.pi * (1.8 + depth * 0.1) + depth * 0.7) * 0.025;
-        path.lineTo(size.width * x, size.height * (baseY + wave));
+        final wave = math.sin(
+              x * math.pi * (1.35 + depth * 0.12) + depth * 0.72,
+            ) *
+            0.024;
+        final shelf = math.cos(x * math.pi * 2.1 + depth) * 0.012;
+        path.lineTo(size.width * x, size.height * (baseY + wave + shelf));
       }
       canvas.drawPath(
         path,
         Paint()
-          ..color = AppColors.borderCyan.withValues(alpha: 0.035 + depth * 0.012)
+          ..color = AppColors.borderCyan.withValues(alpha: 0.035 + depth * 0.01)
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 0.8,
+          ..strokeWidth = depth.isEven ? 1.0 : 0.65,
+      );
+    }
+
+    final shelfLines = [
+      (0.18, 0.32, 0.34, 0.44, 0.82, 0.38),
+      (0.06, 0.62, 0.38, 0.52, 0.95, 0.68),
+      (0.22, 0.82, 0.50, 0.70, 1.04, 0.80),
+    ];
+    for (final s in shelfLines) {
+      final path = Path()
+        ..moveTo(size.width * s.$1, size.height * s.$2)
+        ..cubicTo(
+          size.width * s.$3,
+          size.height * s.$4,
+          size.width * 0.62,
+          size.height * (s.$4 - 0.08),
+          size.width * s.$5,
+          size.height * s.$6,
+        );
+      canvas.drawPath(
+        path,
+        Paint()
+          ..color = AppColors.accentTeal.withValues(alpha: 0.12)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.2,
       );
     }
   }

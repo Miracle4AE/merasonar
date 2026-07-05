@@ -142,5 +142,105 @@ void main() {
       expect(b.dx, lessThan(280));
       expect(b.dy, lessThan(180));
     });
+
+    test('compact cluster detector catches right-top clustered projection', () {
+      const markers = [
+        DashboardMapMarker(
+          normalizedX: 0.78,
+          normalizedY: 0.18,
+          id: 'a',
+          lat: 37.390000,
+          lon: 27.190000,
+          score: 37,
+        ),
+        DashboardMapMarker(
+          normalizedX: 0.80,
+          normalizedY: 0.20,
+          id: 'b',
+          lat: 37.390001,
+          lon: 27.190001,
+          score: 1,
+        ),
+        DashboardMapMarker(
+          normalizedX: 0.82,
+          normalizedY: 0.19,
+          id: 'c',
+          lat: 37.390002,
+          lon: 27.190002,
+          score: 1,
+        ),
+      ];
+      final assessment =
+          DashboardMapPreviewProjection.assessProjectedMarkers(markers);
+      expect(assessment.isCompactCluster, isTrue);
+      expect(assessment.requiresPreviewSpreadLayout, isTrue);
+      expect(assessment.topRightClusterCount, 3);
+    });
+
+    test('runtime-like score 37 cluster uses spread layout and caps low scores', () {
+      final raw = _runtimeLikeClusterMarkers();
+      final layout = DashboardMapPreviewProjection.buildPreviewLayout(
+        markers: raw,
+        selectedMarkerId: 'selected',
+      );
+
+      expect(layout.assessment.isCompactCluster, isTrue);
+      expect(layout.markers.length, 7);
+      expect(layout.hiddenMarkerCount, 3);
+      expect(layout.markers.map((m) => m.id), contains('selected'));
+
+      final selected = layout.markers.firstWhere((m) => m.id == 'selected');
+      expect(selected.score, 37);
+      expect(selected.lat, raw.first.lat);
+      expect(selected.lon, raw.first.lon);
+      expect(selected.normalizedX, closeTo(0.56, 0.001));
+      expect(selected.normalizedY, closeTo(0.46, 0.001));
+
+      final topRightCount = layout.markers
+          .where((m) => m.normalizedX > 0.72 && m.normalizedY < 0.28)
+          .length;
+      expect(topRightCount / layout.markers.length, lessThan(0.5));
+    });
+
+    test('spread layout preserves marker ids scores and coordinates', () {
+      final raw = _runtimeLikeClusterMarkers();
+      final layout = DashboardMapPreviewProjection.buildPreviewLayout(
+        markers: raw,
+        selectedMarkerId: 'selected',
+      );
+
+      for (final marker in layout.markers) {
+        final original = raw.firstWhere((m) => m.id == marker.id);
+        expect(marker.score, original.score);
+        expect(marker.lat, original.lat);
+        expect(marker.lon, original.lon);
+      }
+      expect(layout.markers.length, lessThanOrEqualTo(raw.length));
+    });
   });
+}
+
+List<DashboardMapMarker> _runtimeLikeClusterMarkers() {
+  const baseLat = 37.390000;
+  const baseLon = 27.190000;
+  return [
+    const DashboardMapMarker(
+      normalizedX: 0,
+      normalizedY: 0,
+      id: 'selected',
+      lat: baseLat,
+      lon: baseLon,
+      score: 37,
+      isSelected: true,
+    ),
+    for (var i = 1; i <= 9; i++)
+      DashboardMapMarker(
+        normalizedX: 0,
+        normalizedY: 0,
+        id: 'low_$i',
+        lat: baseLat + i * 0.000001,
+        lon: baseLon + i * 0.000001,
+        score: 1,
+      ),
+  ];
 }

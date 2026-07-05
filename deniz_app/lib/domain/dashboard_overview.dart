@@ -473,6 +473,9 @@ class DashboardMapPreviewData {
     this.depthLegendMaxLabel,
     this.warningLabel,
     this.isLowConfidence = false,
+    this.isCompactCluster = false,
+    this.hiddenMarkerCount = 0,
+    this.layoutDebugLabel,
   });
 
   final double? centerLat;
@@ -498,6 +501,9 @@ class DashboardMapPreviewData {
   final String? depthLegendMaxLabel;
   final String? warningLabel;
   final bool isLowConfidence;
+  final bool isCompactCluster;
+  final int hiddenMarkerCount;
+  final String? layoutDebugLabel;
 
   bool get hasData =>
       displayMode != DashboardMapPreviewMode.empty &&
