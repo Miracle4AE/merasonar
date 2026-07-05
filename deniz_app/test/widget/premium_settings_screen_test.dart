@@ -74,10 +74,9 @@ void main() {
     await tester.tap(find.text('Veri ve Senkronizasyon').last);
     await tester.pumpAndSettle();
 
-    final switches = find.byType(SwitchListTile);
-    expect(switches, findsWidgets);
-    // "Otomatik yenileme" — üçüncü switch
-    await tester.tap(switches.at(2));
+    final autoRefreshTile = find.widgetWithText(SwitchListTile, 'Otomatik yenileme');
+    expect(autoRefreshTile, findsOneWidget);
+    await tester.tap(autoRefreshTile);
     await tester.pumpAndSettle();
 
     final reloaded = AppSettingsController(service: AppSettingsService());
