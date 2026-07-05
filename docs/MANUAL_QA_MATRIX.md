@@ -1,8 +1,25 @@
-# MeraSonar — Manual QA Matrix (RC1 Final Rebuild #9)
+# MeraSonar — Manual QA Matrix (RC1 Build9.7)
 
-**RC1 Final date:** 2026-07-05 · Build9.6 Map Calibration Confidence Fix
+**RC1 Final date:** 2026-07-05 · Build9.7 Dashboard Map Preview Premium Redesign
 
 **Platform:** W = Windows desktop · AP = Android fiziksel · AE = Android emülatör
+
+## RC1 Build9.7 — Dashboard Map Preview Premium Redesign
+
+**Date:** 2026-07-05 · **Tag:** `v1.0.0-rc1-build9.7` · **Commit:** `aaaf0f3` · **CI run:** [28744783423](https://github.com/Miracle4AE/merasonar/actions/runs/28744783423)
+
+| Scenario | W | Status | Notes |
+|----------|---|--------|-------|
+| CI QA gates | ✓ | **Passed** | `pytest` 258 · `flutter analyze` 0 · `flutter test` 460 |
+| Windows release artifact | ✓ | **Passed** | Build, zip, artifact sanity, upload |
+| Android APK artifact | — | **Passed** | CI APK build + artifact sanity + upload |
+| CI artifact hash validation | ✓ | **Passed** | Downloaded artifacts hashed locally |
+| Artifact sanity on downloaded CI outputs | ✓ | **Passed** | APK + Windows dir + Windows zip OK |
+| Dashboard map preview screenshot | ✓ | **Passed** | `dashboard-map-preview-reference-redesign.png` widget export |
+| Fake marker / fake score guard | ✓ | **Passed** | Projection/unit/widget tests; empty/limited state keeps map honest |
+| Selected marker reticle | ✓ | **Passed** | Widget export + painter tests |
+
+**Runtime QA note:** Canlı backend + gerçek fishing zone runtime QA önerilir. `PremiumMapPreviewCard` mission panel ayrı turda dashboard v2 painter ile hizalanabilir.
 
 ## RC1 Build9.6 — Map Calibration Confidence Manual QA
 

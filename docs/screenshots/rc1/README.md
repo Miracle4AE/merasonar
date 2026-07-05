@@ -1,6 +1,19 @@
-# MeraSonar RC1 — Visual QA Screenshot Pack (RC1 Build9.6)
+# MeraSonar RC1 — Visual QA Screenshot Pack (RC1 Build9.7)
 
-**Capture date:** 2026-07-05 · **Build:** RC1 Build9.6 (Map Calibration Confidence Fix)
+**Capture date:** 2026-07-05 · **Build:** RC1 Build9.7 (Dashboard Map Preview Premium Redesign)
+
+## Dashboard map preview (RC1 Build9.7)
+
+| File | Status | Platform | Build | Notes |
+|------|--------|----------|-------|-------|
+| `dashboard-map-preview-reference-redesign.png` | **Passed** | Widget export | RC1 Build9.7 | Premium dark geo score preview; real-lat/lon projection path; selected marker reticle; no fake score marker |
+
+**Capture command:**
+```powershell
+flutter test test/widget/dashboard_map_preview_redesign_test.dart --dart-define=DASH_MAP_QA_OUT=docs/screenshots/rc1
+```
+
+**Runtime QA note:** Canlı backend + gerçek fishing zone runtime QA önerilir. `PremiumMapPreviewCard` mission panel ayrı turda dashboard v2 painter ile hizalanabilir.
 
 ## Map calibration confidence (RC1 Build9.6)
 

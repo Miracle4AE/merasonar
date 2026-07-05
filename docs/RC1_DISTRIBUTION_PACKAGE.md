@@ -1,19 +1,19 @@
 # MeraSonar v1.0.0-rc1 — RC1 Distribution Package
 
 **Sürüm:** v1.0.0-rc1 (pubspec `1.0.0+1`)  
-**Build / paket tarihi:** 2026-07-05 (RC1 Build9.6 — Map Calibration Confidence Fix)  
-**Gate kararı:** **GO** (Build9.6 QA + artifact sanity validated)
+**Build / paket tarihi:** 2026-07-05 (RC1 Build9.7 — Dashboard Map Preview Premium Redesign)  
+**Gate kararı:** **GO** (Build9.7 CI QA + artifact sanity validated)
 
 ## Final RC1 Build Tag
 
 | Öğe | Değer |
 |-----|--------|
-| Final tag | `v1.0.0-rc1-build9.6.1` (CI green · dağıtım) |
-| Commit | `ce048b9` |
-| GitHub Release Build | **Passed** — [run 28740932100](https://github.com/Miracle4AE/merasonar/actions/runs/28740932100) |
-| Not | `v1.0.0-rc1-build9.6` analyze fail ([28740877374](https://github.com/Miracle4AE/merasonar/actions/runs/28740877374)); dağıtım **build9.6.1** |
+| Final tag | `v1.0.0-rc1-build9.7` (CI green · dağıtım) |
+| Commit | `aaaf0f3` |
+| GitHub Release Build | **Passed** — [run 28744783423](https://github.com/Miracle4AE/merasonar/actions/runs/28744783423) |
+| Not | Dashboard Map Preview Premium Redesign; `build9.6.1` calibration confidence fix olarak korunuyor |
 | CI artifacts | APK + Windows folder + zip uploaded |
-| Lokal Rebuild #9.6 hashleri | **Current** — aşağıdaki tablolar |
+| Lokal Rebuild #9.6 hashleri | **Preserved** — CI build9.7 artifactleri dağıtım kaynağı |
 | Dağıtım | CI artifact veya lokal `MeraSonar-windows-release.zip` / `app-release.apk` |
 
 ---
@@ -24,8 +24,8 @@
 |-----|--------|
 | Repository | https://github.com/Miracle4AE/merasonar |
 | Branch | `main` |
-| Tag | `v1.0.0-rc1-build9.6.1` @ `ce048b9` (final CI green) · `v1.0.0-rc1-build9.6` (analyze fail) · `v1.0.0-rc1-build9.5` @ `f9a5e2a` |
-| Release Build CI | **Passed** — [28740932100](https://github.com/Miracle4AE/merasonar/actions/runs/28740932100) (build9.6.1) |
+| Tag | `v1.0.0-rc1-build9.7` @ `aaaf0f3` (final CI green) · `v1.0.0-rc1-build9.6.1` @ `ce048b9` |
+| Release Build CI | **Passed** — [28744783423](https://github.com/Miracle4AE/merasonar/actions/runs/28744783423) (build9.7) |
 | CI artifacts | `MeraSonar-android-apk`, `MeraSonar-windows-release`, `MeraSonar-windows-release-zip` |
 
 **CI artifact indirme:** GitHub Actions → Release Build run → Artifacts bölümü.
@@ -46,23 +46,23 @@
 | `check_openai_config.py --live` | OK — `LIVE_SOURCE: ai` |
 | `pytest` | 258 passed |
 | `flutter analyze` | 0 issue |
-| `flutter test` | 450 passed |
+| `flutter test` | 460 passed |
 | `release_verify.bat qa` | OK |
 | `check_release_artifacts.py` | OK |
-| Manual QA | Rebuild #9 matrix — bkz. `docs/MANUAL_QA_MATRIX.md` |
+| Manual QA | Build9.7 dashboard map preview widget export — bkz. `docs/MANUAL_QA_MATRIX.md` |
 
 ---
 
 ## Dağıtım artifact’leri
 
-### Windows (CI build9.6.1 — dağıtım)
+### Windows (CI build9.7 — dağıtım)
 
 | Öğe | Değer |
 |-----|--------|
-| CI run | [28740932100](https://github.com/Miracle4AE/merasonar/actions/runs/28740932100) |
-| Zip SHA256 | `3424a58fc18392ac67bfa4d514d53c88ecb73c7a1bd17d096bbdacec5aad6ecd` |
-| Exe SHA256 | `573c4a8f392f278bc038c7d53caa1422125b67e782c8c355421a25b1ce73353c` |
-| `data/app.so` SHA256 | `ce95b3fcdd8e9d5dc251759380e166633dda3c211f91a1afd0f8f45d6c73775b` |
+| CI run | [28744783423](https://github.com/Miracle4AE/merasonar/actions/runs/28744783423) |
+| Zip SHA256 | `eba1607d4688f7f9b48194f155cf296b1aa71050b9264eb26055d383c294f703` |
+| Exe SHA256 | `9d8d613705ba64ca0d01314e93177ba677bdf323923c89357af815e58a94684d` |
+| `data/app.so` SHA256 | `db31b7d962c019257a7d52ba4bf1e6b34df311e818130646d088470d1eec1a52` |
 
 ### Windows (lokal Rebuild #9.6)
 
@@ -72,11 +72,11 @@
 | Exe SHA256 | `385bc0a92a1e6a1e8c83bb22cd0f6c9d43bb6424b0f4358043d9febc2b3e2338` |
 | `data/app.so` SHA256 | `b44d56b747485a37d331c7c5f29fcc62e5de2e0ee28abdc88ba1a6a6bef8d473` |
 
-### Android (CI build9.6.1 — dağıtım)
+### Android (CI build9.7 — dağıtım)
 
 | Öğe | Değer |
 |-----|--------|
-| SHA256 | `ec99da4ba37e72ba1d90777ccd62e6e48d541c1d47eca12d168cdc83a0c7e14a` |
+| SHA256 | `d2232d5b6407c02f1d80d2ee967a7f361fa9f65139e080346f95ea80e285ec5f` |
 
 ### Android (lokal Rebuild #9.6)
 
