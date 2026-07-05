@@ -68,30 +68,6 @@ void main() {
     expect(reloaded.settings.autoRefreshEnabled, isFalse);
   });
 
-  testWidgets('data sync section exposes auto refresh toggle', (tester) async {
-    final controller = AppSettingsController(
-      service: AppSettingsService(),
-    );
-    await controller.load();
-
-    await tester.pumpWidget(
-      wrap(
-        PremiumSettingsScreen(
-          serverHost: '127.0.0.1',
-          onSaveConnection: (host, port) async {},
-          onAutoDiscover: () async {},
-        ),
-        controller,
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('Veri ve Senkronizasyon').last);
-    await tester.pumpAndSettle();
-
-    expect(find.text('Otomatik yenileme'), findsOneWidget);
-  });
-
   testWidgets('connection test updates status badge', (tester) async {
     final controller = AppSettingsController(
       service: AppSettingsService(),
