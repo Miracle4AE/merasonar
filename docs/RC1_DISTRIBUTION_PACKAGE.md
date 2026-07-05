@@ -1,8 +1,27 @@
 # MeraSonar v1.0.0-rc1 — RC1 Distribution Package
 
 **Sürüm:** v1.0.0-rc1 (pubspec `1.0.0+1`)  
-**Build / paket tarihi:** 2026-07-05 (RC1 Final Rebuild #8 — Captain Atlas Live AI Fix)  
-**Gate kararı:** **GO** (RC8 + Rebuild #8)
+**Build / paket tarihi:** 2026-07-05 (RC1 Final Rebuild #8 + RC Phase 10 Git/CI)  
+**Gate kararı:** **GO** (RC8 + Rebuild #8 + CI validated)
+
+---
+
+## Git / CI
+
+| Öğe | Değer |
+|-----|--------|
+| Repository | https://github.com/Miracle4AE/merasonar |
+| Branch | `main` |
+| Tag | `v1.0.0-rc1` @ `8fc4e99584acfb995ab461a69859bb0ce966df1a` |
+| Release Build CI | **Passed** — run [28732259611](https://github.com/Miracle4AE/merasonar/actions/runs/28732259611) |
+| CI artifacts | `MeraSonar-android-apk`, `MeraSonar-windows-release`, `MeraSonar-windows-release-zip` |
+
+**CI artifact indirme:** GitHub Actions → Release Build run → Artifacts bölümü.
+
+**Dağıtım notu:**
+- Windows: `MeraSonar-windows-release.zip` (lokal veya CI)
+- Android APK: test/internal distribution — Play upload için production signing gerekir
+- Lokal ve CI hashleri farklı olabilir (Flutter sürüm farkı); her ikisi de artifact sanity geçer
 
 ---
 
@@ -78,7 +97,7 @@
 
 ## Bilinen pending maddeler
 
-- Git repository / tag / CI release-build doğrulaması **pending**
+- Git repository / tag / CI release-build doğrulaması **Passed** (2026-07-05)
 - Captain Atlas UI live AI screenshot **pending** — API live smoke `source=ai` kanıtlandı
 - Android full QA matrisi **partial**
 - Play upload signing **pending**

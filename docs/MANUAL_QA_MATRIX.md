@@ -15,6 +15,7 @@
 | Fallback reason debug chip (kDebugMode) | ✓ | — | — | **Passed** | Widget + marine comment card |
 | Key rotation (revoke exposed key) | — | — | — | **User action required** | OpenAI Dashboard revoke; new key local `.env` only |
 | Artifact sanity Rebuild #8 | ✓ | ✓ | — | **Passed** | `release_verify.bat all` |
+| GitHub Actions Release Build (tag v1.0.0-rc1) | — | — | — | **Passed** | run 28732259611 |
 
 ## RC1 Final priority summary
 

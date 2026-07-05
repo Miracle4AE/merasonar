@@ -47,3 +47,4 @@ ai_telemetry.jsonl
 
 # Release build artifacts (local; CI uploads via Actions)
 deniz_app/MeraSonar-windows-release.zip
+ci_artifacts/
