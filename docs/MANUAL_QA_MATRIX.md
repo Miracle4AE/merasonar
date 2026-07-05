@@ -1,8 +1,24 @@
-# MeraSonar — Manual QA Matrix (RC1 Build9.7)
+# MeraSonar — Manual QA Matrix (RC1 Build9.7.1)
 
-**RC1 Final date:** 2026-07-05 · Build9.7 Dashboard Map Preview Premium Redesign
+**RC1 Final date:** 2026-07-05 · Build9.7.1 Dashboard Map Preview Runtime Cluster Fix
 
 **Platform:** W = Windows desktop · AP = Android fiziksel · AE = Android emülatör
+
+## RC1 Build9.7.1 — Dashboard Map Preview Runtime Cluster Fix
+
+**Date:** 2026-07-05 · **Tag:** `v1.0.0-rc1-build9.7.1` · **Commit:** `6f144f1` · **CI run:** [28745454536](https://github.com/Miracle4AE/merasonar/actions/runs/28745454536)
+
+| Scenario | W | Status | Notes |
+|----------|---|--------|-------|
+| Runtime-like compact cluster fixture | ✓ | **Passed** | Selected score 37 + nine score-1 markers; no top-right chain |
+| Compact cluster detector | ✓ | **Passed** | Meter span / overlap / top-right cluster assessment |
+| Preview spread layout | ✓ | **Passed** | Selected centered; real marker lat/lon/score preserved |
+| Low-score cap / summary badge | ✓ | **Passed** | Max 7 orbs; `+N düşük skor` badge |
+| CI QA gates | ✓ | **Passed** | `pytest` 258 · `flutter analyze` 0 · `flutter test` 465 |
+| Windows release artifact | ✓ | **Passed** | Build, zip, artifact sanity, upload |
+| Android APK artifact | — | **Passed** | CI APK build + artifact sanity + upload |
+| Artifact sanity on downloaded CI outputs | ✓ | **Passed** | APK + Windows dir + Windows zip OK |
+| Runtime cluster screenshot | ✓ | **Passed** | `dashboard-map-preview-runtime-cluster-fixed.png` |
 
 ## RC1 Build9.7 — Dashboard Map Preview Premium Redesign
 

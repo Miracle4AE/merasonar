@@ -1,13 +1,13 @@
-# MeraSonar RC1 — Visual QA Screenshot Pack (RC1 Build9.7)
+# MeraSonar RC1 — Visual QA Screenshot Pack (RC1 Build9.7.1)
 
-**Capture date:** 2026-07-05 · **Build:** RC1 Build9.7 (Dashboard Map Preview Premium Redesign)
+**Capture date:** 2026-07-05 · **Build:** RC1 Build9.7.1 (Dashboard Map Preview Runtime Cluster Fix)
 
-## Dashboard map preview (RC1 Build9.7)
+## Dashboard map preview (RC1 Build9.7.1)
 
 | File | Status | Platform | Build | Notes |
 |------|--------|----------|-------|-------|
-| `dashboard-map-preview-reference-redesign.png` | **Passed** | Widget export | RC1 Build9.7 | Premium dark geo score preview; real-lat/lon projection path; selected marker reticle; no fake score marker |
 | `dashboard-map-preview-runtime-cluster-fixed.png` | **Passed** | Widget export | RC1 Build9.7.1 | Runtime-like compact cluster fixture; selected score 37 centered; low-score markers capped; +N badge; no top-right chain |
+| `dashboard-map-preview-reference-redesign.png` | **Passed** | Widget export | RC1 Build9.7 | Premium dark geo score preview; real-lat/lon projection path; selected marker reticle; no fake score marker |
 
 **Capture command:**
 ```powershell
