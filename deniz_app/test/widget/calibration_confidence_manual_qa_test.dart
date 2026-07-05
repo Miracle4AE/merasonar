@@ -43,23 +43,6 @@ Future<void> _savePng(WidgetTester tester, String fileName) async {
   expect(File(outPath).existsSync(), isTrue, reason: 'PNG not written: $outPath');
 }
 
-List<ImageControlPoint> _thinUserControlPoints() {
-  final geos = kExampleThinNorthSouthCalibrationCoords();
-  const pixels = [
-    (x: 195.0, y: 20.0),
-    (x: 210.0, y: 280.0),
-    (x: 205.0, y: 560.0),
-  ];
-  return List<ImageControlPoint>.generate(
-    3,
-    (i) => ImageControlPoint(
-      pixelX: pixels[i].x,
-      pixelY: pixels[i].y,
-      geo: geos[i],
-    ),
-  );
-}
-
 GeoVisualizationState _lowConfidenceMapViz() {
   final thin = assessGeoTriangle(kExampleThinNorthSouthCalibrationCoords());
   final stringHotspots = List<Hotspot>.generate(8, (i) {
