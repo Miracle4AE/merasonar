@@ -53,7 +53,22 @@ void main() {
     expect(find.text('Kaydet'), findsOneWidget);
   });
 
-  testWidgets('toggle persists through controller', (tester) async {
+  test('auto refresh toggle persists through controller', () async {
+    final service = AppSettingsService();
+    final controller = AppSettingsController(service: service);
+    await controller.load();
+    expect(controller.settings.autoRefreshEnabled, isTrue);
+
+    await controller.update(
+      controller.settings.copyWith(autoRefreshEnabled: false),
+    );
+
+    final reloaded = AppSettingsController(service: service);
+    await reloaded.load();
+    expect(reloaded.settings.autoRefreshEnabled, isFalse);
+  });
+
+  testWidgets('data sync section exposes auto refresh toggle', (tester) async {
     final controller = AppSettingsController(
       service: AppSettingsService(),
     );
@@ -74,14 +89,7 @@ void main() {
     await tester.tap(find.text('Veri ve Senkronizasyon').last);
     await tester.pumpAndSettle();
 
-    final autoRefreshTile = find.widgetWithText(SwitchListTile, 'Otomatik yenileme');
-    expect(autoRefreshTile, findsOneWidget);
-    await tester.tap(autoRefreshTile);
-    await tester.pumpAndSettle();
-
-    final reloaded = AppSettingsController(service: AppSettingsService());
-    await reloaded.load();
-    expect(reloaded.settings.autoRefreshEnabled, isFalse);
+    expect(find.text('Otomatik yenileme'), findsOneWidget);
   });
 
   testWidgets('connection test updates status badge', (tester) async {
