@@ -17,7 +17,7 @@ import 'package:deniz_app/utils/log_sanitize.dart';
 import 'package:deniz_app/utils/performance_trace.dart';
 import 'package:http/http.dart' as http;
 
-import 'services/backend_discovery_service.dart' show validateHealthResponse;
+import 'services/health_response_details.dart';
 
 class ApiException implements Exception {
   final String message;
@@ -94,12 +94,18 @@ class HealthCheckResult {
     required this.ok,
     required this.message,
     this.receivedNonMerasonarResponse = false,
+    this.latencyMs,
+    this.serviceVersion,
+    this.serviceName,
   });
 
   final bool ok;
   final String message;
   /// HTTP 200 alındı ancak /health gövdesi MeraSonar şemasında değil (genelde port 8000 başka süreç).
   final bool receivedNonMerasonarResponse;
+  final int? latencyMs;
+  final String? serviceVersion;
+  final String? serviceName;
 }
 
 class ApiService {
@@ -111,47 +117,62 @@ class ApiService {
 
   Future<HealthCheckResult> checkHealth() async {
     final uri = Uri.parse('$serverBaseUrl/health');
+    final started = DateTime.now();
     try {
       final response = await _client
           .get(uri)
           .timeout(const Duration(seconds: 6));
+      final latencyMs =
+          DateTime.now().difference(started).inMilliseconds;
       if (response.statusCode >= 200 && response.statusCode < 300) {
-        if (!validateHealthResponse(response.body)) {
+        final details = HealthResponseDetails.fromBody(response.body);
+        if (!details.valid) {
           log(
             'health mismatch body=${truncateLogBody(response.body)}',
             name: 'ApiService',
           );
-          return const HealthCheckResult(
+          return HealthCheckResult(
             ok: false,
             message: 'Sunucu MeraSonar API doğrulanamadı.',
             receivedNonMerasonarResponse: true,
+            latencyMs: latencyMs,
           );
         }
-        return const HealthCheckResult(
+        return HealthCheckResult(
           ok: true,
           message: 'Sunucu erişilebilir.',
+          latencyMs: latencyMs,
+          serviceVersion: details.version,
+          serviceName: details.service,
         );
       }
       log(
         'health unexpected status=${response.statusCode} body=${truncateLogBody(response.body)}',
         name: 'ApiService',
       );
-      return const HealthCheckResult(
+      return HealthCheckResult(
         ok: false,
         message: 'Sunucu beklenenden farklı yanıt verdi.',
+        latencyMs: latencyMs,
       );
     } on TimeoutException {
-      return const HealthCheckResult(
+      return HealthCheckResult(
         ok: false,
         message: 'Sunucuya erişim zaman aşımına uğradı.',
+        latencyMs: DateTime.now().difference(started).inMilliseconds,
       );
     } on SocketException catch (e) {
-      return HealthCheckResult(ok: false, message: _socketMessage(e));
+      return HealthCheckResult(
+        ok: false,
+        message: _socketMessage(e),
+        latencyMs: DateTime.now().difference(started).inMilliseconds,
+      );
     } catch (e, st) {
       log('health failed: $e', name: 'ApiService', stackTrace: st);
-      return const HealthCheckResult(
+      return HealthCheckResult(
         ok: false,
         message: 'Sunucuya ulaşılamıyor.',
+        latencyMs: DateTime.now().difference(started).inMilliseconds,
       );
     }
   }

@@ -13,10 +13,17 @@ import 'package:deniz_app/domain/live_ai_context.dart';
 /// Oturum içi bellek önbelleği — aynı analiz/scope/soru/live için tekrar istek azaltır.
 
 class AiAssistantCache {
+  AiAssistantCache() {
+    _instances.add(this);
+  }
 
-  AiAssistantCache();
+  static final Set<AiAssistantCache> _instances = <AiAssistantCache>{};
 
-
+  static void clearAllSessions() {
+    for (final cache in _instances.toList()) {
+      cache.clear();
+    }
+  }
 
   final Map<String, AiAssistantResponse> _store = {};
 

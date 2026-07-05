@@ -13,6 +13,7 @@ class LocalStorageService {
   static const String _analysisHistoryKey = 'analysis_history';
   static const String _calibrationProfilesKey = 'calibration_profiles';
   static const String _serverIpKey = 'server_ip';
+  static const String _serverPortKey = 'server_port';
   static const int _maxHistoryEntries = 12;
   static const int _maxCalibrationProfiles = 8;
 
@@ -156,6 +157,16 @@ class LocalStorageService {
     final value = prefs.getString(_serverIpKey);
     if (value == null || value.trim().isEmpty) return null;
     return value.trim();
+  }
+
+  Future<void> saveServerPort(int port) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_serverPortKey, port);
+  }
+
+  Future<int?> loadServerPort() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(_serverPortKey);
   }
 
   Future<List<ChartCalibrationProfile>> loadCalibrationProfiles() async {

@@ -1,7 +1,9 @@
 ﻿import 'package:flutter/material.dart';
 
 import '../../api_service.dart';
+import '../../domain/app_settings.dart';
 import '../../domain/geo_visualization_state.dart';
+import '../../services/app_settings_controller.dart';
 import '../../domain/hotspot_geo_metrics_presentation.dart';
 import '../../l10n/app_strings_tr.dart';
 import '../../services/ai_assistant_cache.dart';
@@ -53,10 +55,13 @@ class HotspotDetailSheet extends StatelessWidget {
     }
     final mobile = useMobileLayout(context);
     final badgeColor = _classificationColor(hotspot.classification);
+    final coordFormat = AppSettingsScope.maybeOf(context)?.settings.coordinateFormat ??
+        CoordinateDisplayFormat.dms;
     final geoMetrics = HotspotGeoMetricsPresentation.fromHotspot(
       hotspot,
       geoVisualization: geoVisualization,
       boatPosition: boatPosition,
+      coordinateFormat: coordFormat,
     );
 
     return DraggableScrollableSheet(
@@ -378,10 +383,13 @@ class HotspotDetailSheet extends StatelessWidget {
 
   Widget _buildSlidePanelBody(BuildContext context) {
     final badgeColor = _classificationColor(hotspot.classification);
+    final coordFormat = AppSettingsScope.maybeOf(context)?.settings.coordinateFormat ??
+        CoordinateDisplayFormat.dms;
     final geoMetrics = HotspotGeoMetricsPresentation.fromHotspot(
       hotspot,
       geoVisualization: geoVisualization,
       boatPosition: boatPosition,
+      coordinateFormat: coordFormat,
     );
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 18),

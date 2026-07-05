@@ -3,7 +3,9 @@
 
 from __future__ import annotations
 
+import os
 import re
+import shutil
 import sys
 from pathlib import Path
 
@@ -29,6 +31,102 @@ def parse_pubspec_version(raw: str) -> tuple[str, str | None]:
         base, build = text.split("+", 1)
         return base.strip(), build.strip() or None
     return text, None
+
+
+def find_flutter() -> Path | None:
+    """Return Flutter executable if discoverable (same priority as release_verify.bat)."""
+    flutter_bin = os.environ.get("FLUTTER_BIN", "").strip()
+    if flutter_bin:
+        p = Path(flutter_bin)
+        if p.is_file():
+            return p
+        fail(f"FLUTTER_BIN set but not found: {flutter_bin}")
+        return None
+    which = shutil.which("puro")
+    if which:
+        return Path(which)
+    which = shutil.which("flutter")
+    if which:
+        return Path(which)
+    which = shutil.which("flutter.bat")
+    if which:
+        return Path(which)
+    puro = (
+        Path.home() / ".puro" / "envs" / "stable" / "flutter" / "bin" / "flutter.bat"
+    )
+    if puro.is_file():
+        return puro
+    return None
+
+
+def check_flutter_available() -> None:
+    flutter = find_flutter()
+    if flutter is None:
+        fail(
+            "Flutter not found. Set FLUTTER_BIN or add Flutter to PATH "
+            "(puro default: %USERPROFILE%\\.puro\\envs\\stable\\flutter\\bin\\flutter.bat)."
+        )
+        return
+    print(f"  flutter: {flutter}")
+
+
+def check_project_path_ascii_safe() -> None:
+    path_str = str(ROOT)
+    if not path_str.isascii():
+        warn(
+            "Non-ASCII project path detected. For reliable local Windows/Android builds, "
+            "use an ASCII path such as C:\\dev\\merasonar or mapped drive M:. "
+            "Run: scripts\\prepare_windows_build_drive.bat"
+        )
+    elif " " in path_str:
+        warn(
+            "Project path contains spaces. Some Flutter AOT builds may fail; "
+            "prefer C:\\dev\\merasonar or scripts\\prepare_windows_build_drive.bat."
+        )
+
+
+def check_env_not_committed() -> None:
+    if not (ROOT / ".env").is_file():
+        return
+    if not (ROOT / ".git").is_dir():
+        return
+    try:
+        import subprocess
+
+        r = subprocess.run(
+            ["git", "ls-files", "--error-unmatch", ".env"],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+        )
+        if r.returncode == 0:
+            fail(".env is tracked by git — must not be committed")
+    except OSError:
+        warn("Could not run git to verify .env is untracked")
+
+
+def check_build_artifacts_ignored() -> None:
+    path = ROOT / ".gitignore"
+    if not path.is_file():
+        return
+    text = path.read_text(encoding="utf-8")
+    if "deniz_app/build/" not in text and "deniz_app\\build\\" not in text:
+        warn(".gitignore should ignore deniz_app/build/")
+    if "MeraSonar-windows-release.zip" not in text:
+        warn(".gitignore should ignore deniz_app/MeraSonar-windows-release.zip")
+
+
+def check_release_output_paths() -> None:
+    expected = [
+        DENIZ_APP / "build" / "windows" / "x64" / "runner" / "Release",
+        DENIZ_APP / "build" / "app" / "outputs" / "flutter-apk" / "app-release.apk",
+        DENIZ_APP / "MeraSonar-windows-release.zip",
+    ]
+    present = [p for p in expected if p.exists()]
+    if present:
+        print(f"  release outputs present: {len(present)} path(s) (OK if from prior build)")
+    else:
+        print("  release outputs: none on disk (OK before first build)")
 
 
 def check_env_example() -> None:
@@ -161,8 +259,13 @@ def check_docs() -> None:
 
 def main() -> int:
     pubspec_ver = check_pubspec_version()
+    check_flutter_available()
+    check_project_path_ascii_safe()
     check_env_example()
     check_gitignore()
+    check_env_not_committed()
+    check_build_artifacts_ignored()
+    check_release_output_paths()
     check_app_config_version(pubspec_ver)
     check_readme_version_note(pubspec_ver)
     check_android_app_name()

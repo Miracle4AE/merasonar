@@ -4,8 +4,9 @@ import 'dart:io' show Platform;
 import 'package:flutter/material.dart';
 
 import 'api_service.dart';
+import 'domain/app_settings.dart';
 import 'config/app_config.dart';
-import 'dialogs/server_host_dialog.dart';
+import 'screens/premium_settings_screen.dart';
 import 'l10n/app_strings_tr.dart';
 import 'legal/in_app_privacy_notice.dart';
 import 'live_area_screen.dart';
@@ -15,6 +16,7 @@ import 'navigation/captain_atlas_launcher.dart';
 import 'navigation/premium_navigator.dart';
 import 'screens/marine_intelligence_screen.dart';
 import 'services/app_preferences.dart';
+import 'services/app_settings_controller.dart';
 import 'services/backend_discovery_service.dart';
 import 'utils/android_backend_host_policy.dart';
 import 'utils/app_haptics.dart';
@@ -127,6 +129,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   void _onCaptainAtlasTap() {
     AppHaptics.lightTap();
+    if (!AppSettingsScope.of(context).settings.captainAtlasEnabled) {
+      context.showPremiumToast(
+        'Captain Atlas ayarlardan kapalı.',
+        type: PremiumToastType.info,
+      );
+      return;
+    }
     unawaited(
       CaptainAtlasLauncher.openCommandCenter(context, _serverIp),
     );
@@ -326,7 +335,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       _discoveryBusy = true;
       _discoveryHint = kDiscoverSearching;
     });
-    final svc = BackendDiscoveryService();
+    final svc = BackendDiscoveryService(
+      apiPort: AppSettingsScope.of(context).settings.serverPort,
+    );
     try {
       var outcome = await svc.discoverBackend(
         storage: _storage,
@@ -382,6 +393,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     await _refreshConnectionHealth();
   }
 
+  String _apiBaseUrl([String? host]) {
+    final settings = AppSettingsScope.of(context).settings;
+    return AppConfig.buildApiBaseUrl(
+      (host ?? _serverIp).trim(),
+      port: settings.serverPort,
+    );
+  }
+
   Future<void> _refreshConnectionHealth() async {
     if (!mounted) return;
     if (Platform.isAndroid && shouldBlockAndroidLoopbackHost(_serverIp.trim())) {
@@ -394,9 +413,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final previous = _healthOkLast;
     setState(() => _healthChecking = true);
     try {
-      final api = ApiService(
-        serverBaseUrl: AppConfig.buildApiBaseUrl(_serverIp.trim()),
-      );
+      final api = ApiService(serverBaseUrl: _apiBaseUrl());
       final r = await api.checkHealth();
       if (!mounted) return;
       final okNow = r.ok;
@@ -405,6 +422,24 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         _healthWrongServiceBody =
             !okNow && r.receivedNonMerasonarResponse;
       });
+      final settingsCtrl = AppSettingsScope.of(context);
+      await settingsCtrl.recordHealthSnapshot(
+        ok: okNow,
+        latencyMs: r.latencyMs ?? 0,
+        serviceVersion: r.serviceVersion,
+        serviceName: r.serviceName,
+        onSuccess: okNow
+            ? LastSuccessfulConnection(
+                host: AppConfig.normalizeHost(_serverIp),
+                port: settingsCtrl.settings.serverPort,
+                checkedAt: DateTime.now(),
+                serviceVersion: r.serviceVersion,
+                serviceName: r.serviceName,
+                latencyMs: r.latencyMs,
+              )
+            : null,
+      );
+      if (!mounted) return;
       final normalizedHost = AppConfig.normalizeHost(_serverIp);
       final isLoopback =
           normalizedHost == '127.0.0.1' ||
@@ -446,48 +481,50 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           Platform.isAndroid && shouldBlockAndroidLoopbackHost(_serverIp.trim()),
       healthOkLast: _healthOkLast,
     );
-    final result = await showMerasonarServerHostDialog(
+    final result = await openPremiumSettingsScreen(
       context,
-      initialHost: _serverIp,
+      serverHost: _serverIp,
       badgeSnapshot: badge,
-      autoDiscoverBusy: _discoveryBusy,
-      onRequestAutoDiscover: () async {
+      discoveryBusy: _discoveryBusy,
+      onAutoDiscover: () async {
         await _runManualBackendDiscovery();
+      },
+      onSaveConnection: (host, port) async {
+        final settingsCtrl = AppSettingsScope.of(context);
+        await _storage.saveServerIp(host);
+        await settingsCtrl.patch(
+          (s) => s.copyWith(serverPort: port),
+        );
+        if (!mounted) return;
+        setState(() => _serverIp = host);
+        await _refreshConnectionHealth();
+        if (!mounted) return;
+        if (_healthOkLast != true &&
+            !(Platform.isAndroid &&
+                shouldBlockAndroidLoopbackHost(host))) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              duration: const Duration(seconds: 9),
+              content: Text(
+                _looksLikePrivateLanHostIpv4(host)
+                    ? kServerHealthFailedLanShapeHint
+                    : kWrongIpFriendlyHint,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.94),
+                  height: 1.38,
+                ),
+              ),
+              backgroundColor: const Color(0xFF37474F),
+            ),
+          );
+        }
       },
     );
     if (!mounted) return;
-    if (result == null) {
-      await _refreshConnectionHealth();
-      return;
+    if (result != null && result.trim().isNotEmpty) {
+      setState(() => _serverIp = result.trim());
     }
-    final trimmed = result.trim();
-    if (trimmed.isEmpty) {
-      await _refreshConnectionHealth();
-      return;
-    }
-    await _storage.saveServerIp(trimmed);
-    setState(() => _serverIp = trimmed);
     await _refreshConnectionHealth();
-    if (!mounted) return;
-    if (_healthOkLast != true &&
-        !(Platform.isAndroid &&
-            shouldBlockAndroidLoopbackHost(trimmed))) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          duration: const Duration(seconds: 9),
-          content: Text(
-            _looksLikePrivateLanHostIpv4(trimmed)
-                ? kServerHealthFailedLanShapeHint
-                : kWrongIpFriendlyHint,
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.94),
-              height: 1.38,
-            ),
-          ),
-          backgroundColor: const Color(0xFF37474F),
-        ),
-      );
-    }
   }
 
   Future<void> _runManualBackendDiscovery() async {
@@ -496,7 +533,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       _discoveryBusy = true;
       _discoveryHint = kDiscoverSearching;
     });
-    final svc = BackendDiscoveryService();
+    final svc = BackendDiscoveryService(
+      apiPort: AppSettingsScope.of(context).settings.serverPort,
+    );
     try {
       final outcome = await svc.discoverBackend(
         storage: _storage,

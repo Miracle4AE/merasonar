@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import '../api_service.dart';
 import '../l10n/app_strings_tr.dart';
+import 'package:deniz_app/domain/app_settings.dart';
 import '../utils/navionics_coordinate_parser.dart';
 import 'geo_visualization_state.dart';
 
@@ -30,6 +31,7 @@ class HotspotGeoMetricsPresentation {
     Hotspot hotspot, {
     GeoVisualizationState? geoVisualization,
     LatLon? boatPosition,
+    CoordinateDisplayFormat coordinateFormat = CoordinateDisplayFormat.dms,
   }) {
     final allowGeo = _geoNumericAllowed(hotspot, geoVisualization);
     final hasLatLon = allowGeo && _hasPlausibleLatLon(hotspot.latitude, hotspot.longitude);
@@ -45,10 +47,10 @@ class HotspotGeoMetricsPresentation {
     }
 
     final latText = hasLatLon
-        ? formatNavionicsCoordinate(hotspot.latitude, isLatitude: true)
+        ? formatCoordinate(hotspot.latitude, isLatitude: true, format: coordinateFormat)
         : kHotspotGeoPlaceholderDash;
     final lonText = hasLatLon
-        ? formatNavionicsCoordinate(hotspot.longitude, isLatitude: false)
+        ? formatCoordinate(hotspot.longitude, isLatitude: false, format: coordinateFormat)
         : kHotspotGeoPlaceholderDash;
     final directDistance = _isPlausibleDistanceMeters(hotspot.distanceM) ? hotspot.distanceM : double.nan;
     final directBearing = _isPlausibleBearingDeg(hotspot.bearingDeg) ? hotspot.bearingDeg : double.nan;
@@ -100,10 +102,26 @@ class HotspotGeoMetricsPresentation {
     return hotspot.mappingTrust != kCoordinateModeImageSpace;
   }
 
-  static String formatLatitudeLongitude(double value, {required bool isLatitude}) =>
+  static String formatLatitudeLongitude(
+    double value, {
+    required bool isLatitude,
+    CoordinateDisplayFormat format = CoordinateDisplayFormat.dms,
+  }) =>
       value.isFinite
-          ? formatNavionicsCoordinate(value, isLatitude: isLatitude)
+          ? formatCoordinate(value, isLatitude: isLatitude, format: format)
           : kHotspotGeoPlaceholderDash;
+
+  static String formatCoordinate(
+    double value, {
+    required bool isLatitude,
+    CoordinateDisplayFormat format = CoordinateDisplayFormat.dms,
+  }) {
+    if (!value.isFinite) return kHotspotGeoPlaceholderDash;
+    if (format == CoordinateDisplayFormat.decimal) {
+      return '${value.toStringAsFixed(6)}°';
+    }
+    return formatNavionicsCoordinate(value, isLatitude: isLatitude);
+  }
   static String formatDistanceMeters(double meters) => meters.isFinite
       ? '${meters.toStringAsFixed(1)} m'
       : kHotspotGeoDistanceUnavailable;

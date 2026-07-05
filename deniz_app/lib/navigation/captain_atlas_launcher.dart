@@ -7,6 +7,7 @@ import 'package:deniz_app/screens/captain_atlas_screen.dart';
 import 'package:deniz_app/services/ai_assistant_cache.dart';
 import 'package:deniz_app/services/client_identity_service.dart';
 import 'package:deniz_app/utils/premium_haptics.dart';
+import 'package:deniz_app/services/app_settings_controller.dart';
 import 'package:deniz_app/widgets/premium/feedback/premium_dialog.dart';
 import 'package:flutter/material.dart';
 
@@ -52,6 +53,17 @@ abstract final class CaptainAtlasLauncher {
     BuildContext context,
     CaptainAtlasLaunchRequest request,
   ) async {
+    final settings = AppSettingsScope.maybeOf(context)?.settings;
+    if (settings != null && !settings.captainAtlasEnabled) {
+      await PremiumDialog.showAlert(
+        context,
+        title: 'Captain Atlas kapalı',
+        message: 'Captain Atlas ayarlardan devre dışı bırakıldı.',
+        tone: PremiumDialogTone.info,
+      );
+      return;
+    }
+
     PremiumHaptics.light();
 
     switch (request.entryPoint) {
@@ -87,6 +99,15 @@ abstract final class CaptainAtlasLauncher {
   }
 
   static Future<void> openCommandCenter(BuildContext context, String serverIp) {
+    final settings = AppSettingsScope.maybeOf(context)?.settings;
+    if (settings != null && !settings.captainAtlasEnabled) {
+      return PremiumDialog.showAlert(
+        context,
+        title: 'Captain Atlas kapalı',
+        message: 'Captain Atlas ayarlardan devre dışı bırakıldı.',
+        tone: PremiumDialogTone.info,
+      );
+    }
     return _openCommandCenter(context, serverIp);
   }
 
@@ -123,10 +144,14 @@ abstract final class CaptainAtlasLauncher {
     );
   }
 
-  static ApiService _api(CaptainAtlasLaunchRequest r) {
+  static ApiService _api(BuildContext context, CaptainAtlasLaunchRequest r) {
+    final port = AppSettingsScope.maybeOf(context)?.settings.serverPort;
     return r.apiService ??
         ApiService(
-          serverBaseUrl: AppConfig.buildApiBaseUrl(r.serverIp.trim()),
+          serverBaseUrl: AppConfig.buildApiBaseUrl(
+            r.serverIp.trim(),
+            port: port,
+          ),
         );
   }
 
@@ -137,7 +162,7 @@ abstract final class CaptainAtlasLauncher {
     final analysis = request.analysis!;
     return showAiAssistantSheet(
       context: context,
-      apiService: _api(request),
+      apiService: _api(context, request),
       analysis: analysis,
       cache: request.aiCache ?? AiAssistantCache(),
       clientIdentityService: request.clientIdentity ?? ClientIdentityService(),
@@ -151,7 +176,7 @@ abstract final class CaptainAtlasLauncher {
   ) {
     return showLiveAiAssistantSheet(
       context: context,
-      apiService: _api(request),
+      apiService: _api(context, request),
       analysis: request.analysis!,
       cache: request.aiCache ?? AiAssistantCache(),
       clientIdentityService: request.clientIdentity ?? ClientIdentityService(),
@@ -166,7 +191,7 @@ abstract final class CaptainAtlasLauncher {
   ) {
     return showHotspotAiAssistantSheet(
       context: context,
-      apiService: _api(request),
+      apiService: _api(context, request),
       analysis: request.analysis!,
       cache: request.aiCache ?? AiAssistantCache(),
       clientIdentityService: request.clientIdentity ?? ClientIdentityService(),

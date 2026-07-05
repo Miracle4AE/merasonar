@@ -2,7 +2,7 @@ import 'package:deniz_app/theme/app_colors.dart';
 import 'package:deniz_app/theme/app_motion.dart';
 import 'package:deniz_app/theme/app_radius.dart';
 import 'package:deniz_app/theme/app_shadows.dart';
-import 'package:deniz_app/theme/app_spacing.dart';
+import 'package:deniz_app/widgets/premium/settings/settings_ui_widgets.dart';
 import 'package:deniz_app/widgets/premium/premium_animation_policy.dart';
 import 'package:deniz_app/widgets/premium/motion/premium_micro_interaction.dart';
 import 'package:deniz_app/widgets/premium/premium_live_glow.dart';
@@ -33,7 +33,7 @@ class PremiumCard extends StatelessWidget {
       curve: AppMotion.microCurve,
       width: width,
       height: height,
-      padding: padding ?? const EdgeInsets.all(AppSpacing.cardPadding),
+      padding: padding ?? EdgeInsets.all(settingsCardPadding(context)),
       decoration: BoxDecoration(
         color: AppColors.surfaceDark.withValues(alpha: 0.94),
         borderRadius: AppRadius.card,

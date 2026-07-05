@@ -14,6 +14,8 @@ import 'package:latlong2/latlong.dart';
 import 'package:permission_handler/permission_handler.dart' show openAppSettings;
 
 import 'api_service.dart';
+import 'domain/app_settings.dart';
+import 'services/app_settings_controller.dart';
 import 'config/app_config.dart';
 import 'domain/geo_visualization_state.dart';
 import 'domain/world_map_empty_diagnostics_copy.dart';
@@ -27,7 +29,7 @@ import 'map/map_viewport_bridge.dart';
 import 'map/widgets/calibrated_mode_ribbon.dart';
 import 'map/widgets/world_map_floating_pills.dart';
 import 'services/boat_gps_smoother.dart';
-import 'dialogs/server_host_dialog.dart';
+import 'screens/premium_settings_screen.dart';
 import 'l10n/app_strings_tr.dart';
 import 'local_storage_service.dart';
 import 'widgets/backend_connection_badge.dart';
@@ -596,10 +598,12 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   }
 
   Future<void> _initializeScreen() async {
+    _applyMapSettingsFromApp();
     await _autoDetectServerIp();
     await _loadServerIp();
     await _refreshMapHealthOnce();
     await _loadCachedData();
+    _maybeAutoOpenMarkerDetail();
     if (mounted && widget.openControlPointCalibration) {
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         await _openCalibrationHighlightFlowFromLiveArea();
@@ -696,9 +700,38 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   }
 
   void _rebuildApiService() {
+    final port = AppSettingsScope.maybeOf(context)?.settings.serverPort;
     _apiService = ApiService(
-      serverBaseUrl: AppConfig.buildApiBaseUrl(_serverIp),
+      serverBaseUrl: AppConfig.buildApiBaseUrl(_serverIp, port: port),
     );
+  }
+
+  void _applyMapSettingsFromApp() {
+    final s = AppSettingsScope.maybeOf(context)?.settings;
+    if (s == null) return;
+    setState(() {
+      _showClassA = s.filterClassA;
+      _showClassB = s.filterClassB;
+      _showClassC = s.filterClassC;
+      _showIntensityOverlay = s.intensityOverlayDefault;
+      _showCorridorOverlay = s.corridorLinesDefault;
+      _showLegend = s.legendDefault;
+      _minScore = s.minHotspotScore;
+      _sortMode = s.defaultHotspotSort == HotspotSortPreference.proximity
+          ? HotspotSortMode.proximity
+          : HotspotSortMode.scoreThenDistance;
+      _experienceTab = s.defaultMapExperience == DefaultMapExperience.map
+          ? MerasonarMapExperienceTab.calibratedWorld
+          : MerasonarMapExperienceTab.photoAnalysis;
+    });
+  }
+
+  void _maybeAutoOpenMarkerDetail() {
+    final s = AppSettingsScope.maybeOf(context)?.settings;
+    if (s == null || !s.autoOpenMarkerDetail) return;
+    final visible = _filteredHotspots;
+    if (visible.isEmpty) return;
+    _openHotspotDetail(visible.first);
   }
 
   Future<void> _loadCachedData() async {
@@ -1579,34 +1612,31 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
           Platform.isAndroid && shouldBlockAndroidLoopbackHost(_serverIp.trim()),
       healthOkLast: _mapHealthOkLast,
     );
-    final result = await showMerasonarServerHostDialog(
+    final result = await openPremiumSettingsScreen(
       context,
-      initialHost: _serverIp,
+      serverHost: _serverIp,
       badgeSnapshot: badge,
-      autoDiscoverBusy: _serverDiscoverBusy,
-      onRequestAutoDiscover: () async {
+      discoveryBusy: _serverDiscoverBusy,
+      onAutoDiscover: () async {
         await _runAutomaticBackendDiscoverFromPhotoAnalysis();
+      },
+      onSaveConnection: (host, port) async {
+        final settingsCtrl = AppSettingsScope.of(context);
+        await _localStorageService.saveServerIp(host);
+        await settingsCtrl.patch(
+          (s) => s.copyWith(serverPort: port),
+        );
+        if (!mounted) return;
+        setState(() => _serverIp = host);
+        _rebuildApiService();
+        await _refreshMapHealthOnce();
       },
     );
     if (!mounted) return;
-
-    if (result == null) {
-      await _refreshMapHealthOnce();
-      return;
+    if (result != null && result.trim().isNotEmpty) {
+      setState(() => _serverIp = result.trim());
+      _rebuildApiService();
     }
-    if (result.isEmpty || result.trim() == _serverIp.trim()) {
-      await _refreshMapHealthOnce();
-      return;
-    }
-    final saved = result.trim();
-    setState(() => _serverIp = saved);
-    await _localStorageService.saveServerIp(saved);
-    _rebuildApiService();
-    if (!mounted) return;
-    _safePremiumSnack(
-      kMapSnackServerUpdated(_serverIp, AppConfig.defaultApiPort),
-      type: PremiumToastType.success,
-    );
     await _refreshMapHealthOnce();
   }
 
@@ -1614,7 +1644,10 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   Future<void> _runAutomaticBackendDiscoverFromPhotoAnalysis() async {
     if (_serverDiscoverBusy || !mounted) return;
     setState(() => _serverDiscoverBusy = true);
-    final svc = BackendDiscoveryService();
+    final svc = BackendDiscoveryService(
+      apiPort: AppSettingsScope.maybeOf(context)?.settings.serverPort ??
+          AppConfig.defaultApiPort,
+    );
     try {
       final outcome = await svc.discoverBackend(
         storage: _localStorageService,
@@ -4207,7 +4240,12 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
                 modeBadgeLabel: _mapModeBadgeLabel(),
                 gpsStatusLabel: _gpsReliabilityLabel(),
                 gpsStatusTone: _gpsReliabilityTone(),
-                dataSourceLabel: _analysisSourceSummary,
+                dataSourceLabel:
+                    (AppSettingsScope.maybeOf(context)?.settings
+                            .showMapPreviewSourceInfo ??
+                        true)
+                    ? _analysisSourceSummary
+                    : null,
                 healthOk: _mapHealthOkLast,
                 busy: _isLoading,
                 onRefresh: _refreshAnalysis,

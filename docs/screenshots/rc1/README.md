@@ -1,6 +1,17 @@
-# MeraSonar RC1 — Visual QA Screenshot Pack (RC1 Final Rebuild #8)
+# MeraSonar RC1 — Visual QA Screenshot Pack (RC1 Final Rebuild #9)
 
-**Capture date:** 2026-07-05 · **Build:** RC1 Final Rebuild #8 (Captain Atlas Live AI Fix)
+**Capture date:** 2026-07-05 · **Build:** RC1 Final Rebuild #9 (Premium Settings Upgrade)
+
+## Premium Settings (RC1 Rebuild #9)
+
+| File | Status | Platform | Build | Notes |
+|------|--------|----------|-------|-------|
+| `settings-premium-screen.png` | **Passed** | Windows release runtime | RC1 Final Rebuild #9 | 6-kategori ayar ekranı; Bağlantı sekmesi görünür |
+
+**Capture command:**
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\rc9_settings_premium_screenshot.ps1
+```
 
 ## Captain Atlas live AI (RC1 Rebuild #8)
 
@@ -49,6 +60,7 @@
 
 | File | Status | Source |
 |------|--------|--------|
+| `settings-premium-screen.png` | **Passed** | runtime (rebuilt exe, Rebuild #9) |
 | `dashboard-map-preview-premium.png` | **Passed** | runtime (rebuilt exe, Rebuild #4) |
 | `map-hotspot-detail-panel.png` | **Passed** | runtime (rebuilt exe, Rebuild #6) |
 | `map-premium-final.png` | **Passed** | runtime (rebuilt exe, Rebuild #5) |
@@ -90,6 +102,7 @@
 powershell -ExecutionPolicy Bypass -File scripts\rc1_dashboard_timeline_screenshot.ps1
 
 # Full pack (RC8)
+powershell -ExecutionPolicy Bypass -File scripts\rc9_settings_premium_screenshot.ps1
 powershell -ExecutionPolicy Bypass -File scripts\rc6_capture_screenshots.ps1
 powershell -ExecutionPolicy Bypass -File scripts\rc8_windows_marine_walkthrough.ps1
 powershell -ExecutionPolicy Bypass -File scripts\rc8_android_qa_matrix.ps1

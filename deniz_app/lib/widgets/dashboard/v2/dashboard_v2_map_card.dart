@@ -6,6 +6,7 @@ import 'package:deniz_app/theme/app_colors.dart';
 import 'package:deniz_app/theme/app_spacing.dart';
 import 'package:deniz_app/theme/app_text_styles.dart';
 import 'package:deniz_app/widgets/dashboard/v2/dashboard_v2_helpers.dart';
+import 'package:deniz_app/services/app_settings_controller.dart';
 import 'package:deniz_app/widgets/premium/premium_card.dart';
 import 'package:deniz_app/widgets/premium/premium_metric_chip.dart';
 import 'package:flutter/material.dart';
@@ -30,6 +31,11 @@ class DashboardV2MapCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final hasData = data.hasData;
     final primaryMarker = data.markers.where((m) => m.isPrimary).toList();
+    final showSource =
+        AppSettingsScope.maybeOf(context)?.settings.showDataSourceLabels ?? true;
+    final showMapSource = showSource &&
+        (AppSettingsScope.maybeOf(context)?.settings.showMapPreviewSourceInfo ??
+            true);
 
     return PremiumCard(
       glow: true,
@@ -74,7 +80,7 @@ class DashboardV2MapCard extends StatelessWidget {
                           DashboardV2Helpers.scoreColor(data.score),
                     ),
                   ),
-                if (data.dataSourceLabel != null && hasData)
+                if (data.dataSourceLabel != null && hasData && showMapSource)
                   Positioned(
                     top: AppSpacing.sm,
                     left: data.score != null ? 88 : AppSpacing.sm,

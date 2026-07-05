@@ -1,8 +1,28 @@
-# MeraSonar — Manual QA Matrix (RC1 Final Rebuild #8)
+# MeraSonar — Manual QA Matrix (RC1 Final Rebuild #9)
 
-**RC1 Final date:** 2026-07-05 · Captain Atlas Live AI Fix + binary rebuild
+**RC1 Final date:** 2026-07-05 · Premium Settings Upgrade + binary rebuild
 
 **Platform:** W = Windows desktop · AP = Android fiziksel · AE = Android emülatör
+
+## RC1 Final Rebuild #9 — Premium Settings Upgrade
+
+| Scenario | W | AP | AE | Status | Notes |
+|----------|---|---|---|--------|-------|
+| Premium Settings ekranı (6 kategori) | ✓ | — | — | **Passed** | Widget + runtime screenshot |
+| Server IP/port kaydet + health test | ✓ | — | — | **Passed** | Unit + connection test |
+| ApiService base URL değişimi | ✓ | — | — | **Passed** | `app_settings_connection_test` |
+| Dashboard auto-refresh timer | ✓ | — | — | **Passed** | Widget test + code review |
+| Cache-first skeleton | ✓ | — | — | **Passed** | Dashboard bootstrap |
+| Map defaults (mod/filtre/koordinat) | ✓ | — | — | **Passed** | Map screen init |
+| Captain Atlas enable/disable | ✓ | — | — | **Passed** | Launcher guard |
+| AI force refresh payload | ✓ | — | — | **Passed** | Controller + backend |
+| Glow / reduce motion / compact | ✓ | — | — | **Passed** | Animation policy + shell |
+| Reset all / cache clear | ✓ | — | — | **Passed** | Service tests |
+| Legacy migration (server_ip only) | ✓ | — | — | **Passed** | `app_settings_service_test` |
+| Fake toggle denetimi | ✓ | — | — | **Passed** | Helper/chip wired |
+| Responsive settings UI | ✓ | ☐ | ☐ | **Partial** | Widget test 390px; runtime W OK |
+| Artifact sanity Rebuild #9 | ✓ | ✓ | — | **Passed** | `check_release_artifacts.py` |
+| `flutter test` 436 | ✓ | — | — | **Passed** | |
 
 ## RC1 Final Rebuild #8 — Captain Atlas Live AI
 
@@ -48,4 +68,4 @@
 
 ---
 
-**Son güncelleme:** RC1 Final Rebuild #8 · `docs/releases/v1.0.0-rc1-artifacts.md`
+**Son güncelleme:** RC1 Final Rebuild #9 · `docs/releases/v1.0.0-rc1-artifacts.md`

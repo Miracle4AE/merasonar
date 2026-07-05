@@ -8,6 +8,7 @@ import 'package:deniz_app/widgets/backend_connection_badge.dart';
 import 'package:deniz_app/widgets/dashboard/v2/dashboard_v2_performance_mode_button.dart';
 import 'package:deniz_app/widgets/premium/premium_icon_button.dart';
 import 'package:deniz_app/widgets/premium/premium_status_badge.dart';
+import 'package:deniz_app/widgets/premium/settings/settings_ui_widgets.dart';
 import 'package:flutter/material.dart';
 
 /// Kompakt üst durum şeridi — konum, hava, ay, gelgit, aksiyonlar.
@@ -47,6 +48,8 @@ class DashboardV2TopStatusBar extends StatelessWidget {
       overview.connectionStatus,
     );
 
+    final showChips = settingsShowStatusChips(context);
+
     return Container(
       height: 44,
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
@@ -63,31 +66,45 @@ class DashboardV2TopStatusBar extends StatelessWidget {
             const SizedBox(width: 2),
           ],
           Expanded(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  _statusChip('$kPremiumHeaderLocation: $loc'),
-                  const SizedBox(width: 6),
-                  _statusChip('$kPremiumHeaderWeather: $weather'),
-                  const SizedBox(width: 6),
-                  _statusChip('$kPremiumHeaderMoon: $moon'),
-                  const SizedBox(width: 6),
-                  _statusChip('$kPremiumHeaderTide: $tide'),
-                  const SizedBox(width: 6),
-                  PremiumStatusBadge(
-                    label: connection,
-                    tone: overview.connectionStatus ==
-                            DashboardConnectionStatus.connected
-                        ? PremiumStatusTone.success
-                        : overview.connectionStatus ==
-                                DashboardConnectionStatus.disconnected
-                            ? PremiumStatusTone.warning
-                            : PremiumStatusTone.neutral,
+            child: showChips
+                ? SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        _statusChip('$kPremiumHeaderLocation: $loc'),
+                        const SizedBox(width: 6),
+                        _statusChip('$kPremiumHeaderWeather: $weather'),
+                        const SizedBox(width: 6),
+                        _statusChip('$kPremiumHeaderMoon: $moon'),
+                        const SizedBox(width: 6),
+                        _statusChip('$kPremiumHeaderTide: $tide'),
+                        const SizedBox(width: 6),
+                        PremiumStatusBadge(
+                          label: connection,
+                          tone: overview.connectionStatus ==
+                                  DashboardConnectionStatus.connected
+                              ? PremiumStatusTone.success
+                              : overview.connectionStatus ==
+                                      DashboardConnectionStatus.disconnected
+                                  ? PremiumStatusTone.warning
+                                  : PremiumStatusTone.neutral,
+                        ),
+                      ],
+                    ),
+                  )
+                : Align(
+                    alignment: Alignment.centerLeft,
+                    child: PremiumStatusBadge(
+                      label: connection,
+                      tone: overview.connectionStatus ==
+                              DashboardConnectionStatus.connected
+                          ? PremiumStatusTone.success
+                          : overview.connectionStatus ==
+                                  DashboardConnectionStatus.disconnected
+                              ? PremiumStatusTone.warning
+                              : PremiumStatusTone.neutral,
+                    ),
                   ),
-                ],
-              ),
-            ),
           ),
           if (connectionBadge != null && !mobile)
             Padding(

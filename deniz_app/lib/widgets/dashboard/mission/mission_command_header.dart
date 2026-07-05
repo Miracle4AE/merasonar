@@ -6,6 +6,7 @@ import 'package:deniz_app/theme/app_spacing.dart';
 import 'package:deniz_app/theme/app_text_styles.dart';
 import 'package:deniz_app/widgets/premium/premium_metric_chip.dart';
 import 'package:deniz_app/widgets/premium/premium_status_badge.dart';
+import 'package:deniz_app/widgets/premium/settings/settings_ui_widgets.dart';
 import 'package:flutter/material.dart';
 
 class MissionCommandHeader extends StatelessWidget {
@@ -46,8 +47,10 @@ class MissionCommandHeader extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(kMissionControlTitle, style: AppTextStyles.heroTitle),
-                  const SizedBox(height: 4),
-                  Text(kMissionControlSubtitle, style: AppTextStyles.caption),
+                  if (settingsShowHelperTexts(context)) ...[
+                    const SizedBox(height: 4),
+                    Text(kMissionControlSubtitle, style: AppTextStyles.caption),
+                  ],
                 ],
               ),
             ),

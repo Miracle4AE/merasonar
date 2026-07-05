@@ -1,6 +1,7 @@
 import 'package:deniz_app/domain/ai_assistant_request.dart';
 import 'package:deniz_app/l10n/app_strings_tr.dart';
 import 'package:deniz_app/theme/app_colors.dart';
+import 'package:deniz_app/services/app_settings_controller.dart';
 import 'package:deniz_app/theme/app_spacing.dart';
 import 'package:deniz_app/theme/app_text_styles.dart';
 import 'package:deniz_app/utils/premium_haptics.dart';
@@ -100,6 +101,10 @@ class AiAssistantStatusChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final showBadges =
+        AppSettingsScope.maybeOf(context)?.settings.showAiSourceBadge ?? true;
+    if (!showBadges) return const SizedBox.shrink();
+
     final chips = <Widget>[];
     if (isFallback) chips.add(_Chip(label: kAiAssistantFallbackBanner, accent: true));
     if (kDebugMode && isFallback && fallbackReason != null && fallbackReason!.isNotEmpty) {

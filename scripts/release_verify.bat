@@ -11,16 +11,9 @@ if exist ".venv\Scripts\python.exe" (
   set "PY=python"
 )
 
-where flutter >nul 2>&1
-if errorlevel 1 (
-  if exist "C:\src\flutter\bin\flutter.bat" (
-    set "FLUTTER=C:\src\flutter\bin\flutter.bat"
-  ) else (
-    set "FLUTTER=flutter"
-  )
-) else (
-  set "FLUTTER=flutter"
-)
+call "%~dp0_resolve_flutter.bat"
+if errorlevel 1 exit /b 1
+echo Using Flutter: %FLUTTER%
 
 echo === MeraSonar release verify [%MODE%] ===
 
@@ -63,42 +56,60 @@ if errorlevel 1 exit /b 1
 call "%~dp0run_backend_tests.bat"
 if errorlevel 1 exit /b 1
 pushd deniz_app
-call %FLUTTER% pub get
+call "%~dp0flutter_exec.bat" pub get
 if errorlevel 1 (popd & exit /b 1)
-call %FLUTTER% analyze
+call "%~dp0flutter_exec.bat" analyze
 if errorlevel 1 (popd & exit /b 1)
-call %FLUTTER% test
+call "%~dp0flutter_exec.bat" test
 if errorlevel 1 (popd & exit /b 1)
 popd
 exit /b 0
 
+goto :eof
+
+:resolve_build_app_dir
+set "BUILD_APP_DIR=deniz_app"
+for %%I in ("%~dp0..") do set "REPO_ROOT=%%~fI"
+
+if defined MERASONAR_BUILD_DRIVE (
+  set "BD=%MERASONAR_BUILD_DRIVE%"
+  if not "!BD:~-1!"==":" set "BD=!BD!:"
+  set "BUILD_APP_DIR=!BD!deniz_app"
+  if exist "!BUILD_APP_DIR!\pubspec.yaml" exit /b 0
+  echo ERROR: MERASONAR_BUILD_DRIVE=!BD! but deniz_app not found.
+  echo Run: scripts\prepare_windows_build_drive.bat
+  exit /b 1
+)
+
+for /f %%I in ('powershell -NoProfile -Command "if ('%REPO_ROOT%' -match '[^\u0000-\u007F]') { '1' } else { '0' }"') do set "BUILD_NONASCII=%%I"
+if "%BUILD_NONASCII%"=="1" (
+  echo.
+  echo WARNING: Non-ASCII project path detected:
+  echo   %REPO_ROOT%
+  echo For reliable Windows/Android release builds use an ASCII path or mapped drive.
+  echo.
+  echo   scripts\prepare_windows_build_drive.bat
+  echo   M:
+  echo   set MERASONAR_BUILD_DRIVE=M:
+  echo   scripts\release_verify.bat %MODE%
+  echo.
+  exit /b 1
+)
+exit /b 0
+
 :build_windows
+setlocal EnableDelayedExpansion
 call :stop_merasonar_for_build
 if errorlevel 1 exit /b 1
-set "REPO_ROOT=%~dp0.."
-set "WIN_APP_DIR=deniz_app"
-for /f %%I in ('powershell -NoProfile -Command "if ('%REPO_ROOT%' -match '[^\u0000-\u007F]') { '1' } else { '0' }"') do set "WIN_NONASCII=%%I"
-if "%WIN_NONASCII%"=="1" (
-  echo Non-ASCII repo path detected — using subst M: for Windows build
-  subst M: "%REPO_ROOT%" 2>nul
-  if exist "M:\deniz_app" (
-    set "WIN_APP_DIR=M:\deniz_app"
-    set "WIN_USED_SUBST=1"
-  )
-)
-pushd %WIN_APP_DIR%
-call %FLUTTER% pub get
-if errorlevel 1 (call :cleanup_win_subst & popd & exit /b 1)
-call %FLUTTER% build windows --release
-if errorlevel 1 (call :cleanup_win_subst & popd & exit /b 1)
+call :resolve_build_app_dir
+if errorlevel 1 exit /b 1
+pushd %BUILD_APP_DIR%
+call "%~dp0flutter_exec.bat" pub get
+if errorlevel 1 (popd & endlocal & exit /b 1)
+call "%~dp0flutter_exec.bat" build windows --release
+if errorlevel 1 (popd & endlocal & exit /b 1)
 popd
-call :cleanup_win_subst
-goto :build_windows_after
-:cleanup_win_subst
-if defined WIN_USED_SUBST subst M: /D 2>nul
-set "WIN_USED_SUBST="
-exit /b 0
-:build_windows_after
+endlocal
 powershell -NoProfile -Command "$src='deniz_app\build\windows\x64\runner\Release'; $dst='deniz_app\MeraSonar-windows-release.zip'; if (-not (Test-Path $src)) { exit 1 }; if (Test-Path $dst) { Remove-Item -Force $dst }; Compress-Archive -Path (Join-Path $src '*') -DestinationPath $dst -Force"
 if errorlevel 1 exit /b 1
 "%PY%" scripts\check_release_artifacts.py --windows-dir deniz_app\build\windows\x64\runner\Release --windows-zip deniz_app\MeraSonar-windows-release.zip
@@ -109,30 +120,16 @@ echo Windows zip: deniz_app\MeraSonar-windows-release.zip
 exit /b 0
 
 :build_apk
-set "REPO_ROOT=%~dp0.."
-set "APK_APP_DIR=deniz_app"
-for /f %%I in ('powershell -NoProfile -Command "if ('%REPO_ROOT%' -match '[^\u0000-\u007F]') { '1' } else { '0' }"') do set "APK_NONASCII=%%I"
-if "%APK_NONASCII%"=="1" (
-  echo Non-ASCII repo path detected — using subst M: for APK build
-  subst M: "%REPO_ROOT%" 2>nul
-  if exist "M:\deniz_app" (
-    set "APK_APP_DIR=M:\deniz_app"
-    set "APK_USED_SUBST=1"
-  )
-)
-pushd %APK_APP_DIR%
-call %FLUTTER% pub get
-if errorlevel 1 (call :cleanup_apk_subst & popd & exit /b 1)
-call %FLUTTER% build apk --release
-if errorlevel 1 (call :cleanup_apk_subst & popd & exit /b 1)
+setlocal EnableDelayedExpansion
+call :resolve_build_app_dir
+if errorlevel 1 exit /b 1
+pushd %BUILD_APP_DIR%
+call "%~dp0flutter_exec.bat" pub get
+if errorlevel 1 (popd & endlocal & exit /b 1)
+call "%~dp0flutter_exec.bat" build apk --release
+if errorlevel 1 (popd & endlocal & exit /b 1)
 popd
-call :cleanup_apk_subst
-goto :build_apk_after
-:cleanup_apk_subst
-if defined APK_USED_SUBST subst M: /D 2>nul
-set "APK_USED_SUBST="
-exit /b 0
-:build_apk_after
+endlocal
 "%PY%" scripts\check_release_artifacts.py --apk deniz_app\build\app\outputs\flutter-apk\app-release.apk
 if errorlevel 1 exit /b 1
 echo.
@@ -144,10 +141,10 @@ echo.
 echo Checking for running MeraSonar.exe (Release folder file lock)...
 tasklist /FI "IMAGENAME eq MeraSonar.exe" 2>nul | find /I "MeraSonar.exe" >nul
 if errorlevel 1 (
-  echo No running MeraSonar.exe — OK.
+  echo No running MeraSonar.exe - OK.
   exit /b 0
 )
-echo MeraSonar.exe is running — closing before Windows build...
+echo MeraSonar.exe is running - closing before Windows build...
 taskkill /IM MeraSonar.exe /F >nul 2>&1
 if errorlevel 1 (
   echo ERROR: Could not close MeraSonar.exe. Close the app manually and retry.

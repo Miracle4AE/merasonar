@@ -1,8 +1,12 @@
+import 'package:deniz_app/domain/app_settings.dart';
 import 'package:deniz_app/domain/premium_performance_mode.dart';
+import 'package:deniz_app/services/app_settings_controller.dart';
 import 'package:deniz_app/widgets/premium/premium_performance_scope.dart';
 import 'package:flutter/widgets.dart';
 abstract final class PremiumAnimationPolicy {
   static bool reduceMotion(BuildContext context) {
+    final userPref = AppSettingsScope.maybeOf(context)?.settings.reduceMotion;
+    if (userPref == true) return true;
     return MediaQuery.disableAnimationsOf(context);
   }
 
@@ -41,12 +45,15 @@ abstract final class PremiumAnimationPolicy {
   }
 
   static double glowIntensity(BuildContext context) {
-    if (reduceMotion(context)) return 0.2;
-    return switch (performanceMode(context)) {
+    final settings = AppSettingsScope.maybeOf(context)?.settings;
+    final userScale = settings?.glowIntensity.multiplier ?? 1.0;
+    if (reduceMotion(context)) return 0.2 * userScale;
+    final base = switch (performanceMode(context)) {
       PremiumPerformanceMode.full => 1,
       PremiumPerformanceMode.balanced => 0.55,
       PremiumPerformanceMode.batterySaver => 0.15,
     };
+    return base * userScale;
   }
 
   static double effectiveBlur(BuildContext context, double requested) {

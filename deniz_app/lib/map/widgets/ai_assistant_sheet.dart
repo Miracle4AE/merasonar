@@ -4,6 +4,7 @@ import 'package:deniz_app/domain/ai_assistant_request.dart';
 import 'package:deniz_app/domain/ai_assistant_response.dart';
 import 'package:deniz_app/l10n/app_strings_tr.dart';
 import 'package:deniz_app/map/widgets/ai_assistant_loading.dart';
+import 'package:deniz_app/services/app_settings_controller.dart';
 import 'package:deniz_app/services/ai_assistant_cache.dart';
 import 'package:deniz_app/services/ai_assistant_sheet_controller.dart';
 import 'package:deniz_app/services/client_identity_service.dart';
@@ -13,6 +14,7 @@ import 'package:deniz_app/widgets/premium/feedback/premium_error_fallback.dart';
 import 'package:deniz_app/widgets/premium/feedback/premium_toast.dart';
 import 'package:deniz_app/widgets/premium/navigation/captain_atlas_cinematic_opening.dart';
 import 'package:deniz_app/widgets/premium/navigation/premium_bottom_sheet.dart';
+import 'package:deniz_app/widgets/premium/settings/settings_ui_widgets.dart';
 import 'package:flutter/material.dart';
 
 /// AI Fishing Assistant sonuç paneli — draggable bottom sheet içeriği.
@@ -59,13 +61,18 @@ class _AiAssistantSheetState extends State<AiAssistantSheet> {
   @override
   void initState() {
     super.initState();
+    final settings = AppSettingsScope.maybeOf(context)?.settings;
+    final forceRefresh = widget.forceRefresh ||
+        settings?.forceRefreshAi == true ||
+        settings?.alwaysTryLiveAi == true;
     _controller = AiAssistantSheetController(
       apiService: widget.apiService,
       analysis: widget.analysis,
       cache: widget.cache,
       request: widget.request,
       clientIdentityService: widget.clientIdentityService,
-      forceRefreshOnOpen: widget.forceRefresh,
+      forceRefreshOnOpen: forceRefresh,
+      allowStaleFallback: settings?.useSafeFallbackSummary ?? true,
     );
     _bootstrap();
   }
@@ -329,19 +336,21 @@ class _AiAssistantContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        AiAssistantStatusChips(
-          isFallback: response.isFallback,
-          fallbackReason: response.fallbackReason,
-          cacheHit: response.cacheHit,
-          model: response.model,
-          remainingQuota: response.remainingAiRequests,
-          isPremium: response.isPremiumFeature == true,
-        ),
-        if (response.isFallback ||
-            response.cacheHit ||
-            (response.model != null && response.model!.trim().isNotEmpty) ||
-            response.remainingAiRequests != null ||
-            response.isPremiumFeature == true)
+        if (settingsShowStatusChips(context))
+          AiAssistantStatusChips(
+            isFallback: response.isFallback,
+            fallbackReason: response.fallbackReason,
+            cacheHit: response.cacheHit,
+            model: response.model,
+            remainingQuota: response.remainingAiRequests,
+            isPremium: response.isPremiumFeature == true,
+          ),
+        if (settingsShowStatusChips(context) &&
+            (response.isFallback ||
+                response.cacheHit ||
+                (response.model != null && response.model!.trim().isNotEmpty) ||
+                response.remainingAiRequests != null ||
+                response.isPremiumFeature == true))
           const SizedBox(height: 12),
         _SectionCard(
           title: kAiAssistantSectionSummary,

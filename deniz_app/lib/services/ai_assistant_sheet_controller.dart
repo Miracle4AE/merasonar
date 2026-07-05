@@ -36,6 +36,8 @@ class AiAssistantSheetController {
 
     this.forceRefreshOnOpen = false,
 
+    this.allowStaleFallback = true,
+
   });
 
 
@@ -51,6 +53,8 @@ class AiAssistantSheetController {
   final ClientIdentityService clientIdentityService;
 
   final bool forceRefreshOnOpen;
+
+  final bool allowStaleFallback;
 
 
 
@@ -126,18 +130,20 @@ class AiAssistantSheetController {
 
     } on ApiException catch (e) {
 
-      final stale = cache.getForRequest(analysis, baseRequest);
+      if (allowStaleFallback) {
+        final stale = cache.getForRequest(analysis, baseRequest);
 
-      if (stale != null) {
+        if (stale != null) {
 
-        response = stale;
+          response = stale;
 
-        cacheOnlyMode = true;
+          cacheOnlyMode = true;
 
-        phase = AiSheetPhase.ready;
+          phase = AiSheetPhase.ready;
 
-        return;
+          return;
 
+        }
       }
 
       errorMessage = e.message;
@@ -146,18 +152,20 @@ class AiAssistantSheetController {
 
     } catch (_) {
 
-      final stale = cache.getForRequest(analysis, baseRequest);
+      if (allowStaleFallback) {
+        final stale = cache.getForRequest(analysis, baseRequest);
 
-      if (stale != null) {
+        if (stale != null) {
 
-        response = stale;
+          response = stale;
 
-        cacheOnlyMode = true;
+          cacheOnlyMode = true;
 
-        phase = AiSheetPhase.ready;
+          phase = AiSheetPhase.ready;
 
-        return;
+          return;
 
+        }
       }
 
       errorMessage = kAiAssistantErrorGeneric;

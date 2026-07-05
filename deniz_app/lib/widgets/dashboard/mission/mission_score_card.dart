@@ -8,6 +8,7 @@ import 'package:deniz_app/widgets/premium/premium_empty_state.dart';
 import 'package:deniz_app/widgets/premium/premium_metric_chip.dart';
 import 'package:deniz_app/widgets/premium/premium_primary_button.dart';
 import 'package:deniz_app/widgets/premium/premium_status_badge.dart';
+import 'package:deniz_app/widgets/premium/settings/settings_ui_widgets.dart';
 import 'package:flutter/material.dart';
 
 class MissionScoreCard extends StatelessWidget {
@@ -51,7 +52,8 @@ class MissionScoreCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(kMissionScoreTitle, style: AppTextStyles.cardTitle),
-                    Text(kMissionScoreSubtitle, style: AppTextStyles.caption),
+                    if (settingsShowHelperTexts(context))
+                      Text(kMissionScoreSubtitle, style: AppTextStyles.caption),
                   ],
                 ),
               ),
@@ -82,7 +84,8 @@ class MissionScoreCard extends StatelessWidget {
                 ),
             ],
           ),
-          if (report.bestActionTr != null &&
+          if (settingsShowHelperTexts(context) &&
+              report.bestActionTr != null &&
               report.bestActionTr!.trim().isNotEmpty) ...[
             const SizedBox(height: AppSpacing.sm),
             Text(
@@ -90,7 +93,8 @@ class MissionScoreCard extends StatelessWidget {
               style: AppTextStyles.caption,
               maxLines: 3,
             ),
-          ] else if (report.advice.trim().isNotEmpty) ...[
+          ] else if (settingsShowHelperTexts(context) &&
+              report.advice.trim().isNotEmpty) ...[
             const SizedBox(height: AppSpacing.sm),
             Text(report.advice, style: AppTextStyles.caption, maxLines: 3),
           ],

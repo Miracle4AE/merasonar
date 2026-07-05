@@ -11,6 +11,7 @@ class AppConfig {
 
   /// Uygulama sürümü — pubspec `version` ile senkron tutulmalı.
   static const String appVersion = '1.0.0';
+  static const String buildNumber = '1';
 
   /// Örnek LAN adresi — gerçek cihazda bilgisayar IP’sini takip eden metinlerde kullanılır.
   static const String defaultLanHostExample = '192.168.1.20';
@@ -52,12 +53,20 @@ class AppConfig {
     return s.trim();
   }
 
-  static String buildApiBaseUrl(String host) {
+  static String buildApiBaseUrl(String host, {int? port}) {
     final h = normalizeHost(host);
+    final p = port ?? defaultApiPort;
     if (h.isEmpty) {
-      return 'http://127.0.0.1:$defaultApiPort';
+      return 'http://127.0.0.1:$p';
     }
-    return 'http://$h:$defaultApiPort';
+    return 'http://$h:$p';
+  }
+
+  static int normalizePort(int? port) {
+    if (port == null || port < 1 || port > 65535) {
+      return defaultApiPort;
+    }
+    return port;
   }
 
   /// Ağ / sunucu hatalarında ikinci satır (LAN kurulumları). Ayrıca [kMsgNetworkRetryHint] ile uyumlu.

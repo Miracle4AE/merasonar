@@ -57,6 +57,7 @@ class BackendDiscoveryService {
     bool? flutterDesktopOverride,
     /// Test için subnet üçlüleri. Her eleman `['192','168','1']`.
     Future<List<List<String>>> Function()? subnetPrefixOverride,
+    this.apiPort = AppConfig.defaultApiPort,
   })  : _client = httpClient ?? http.Client(),
         _ownsClient = ownsClient ?? (httpClient == null),
         _probeTimeout = probeTimeout ?? const Duration(milliseconds: 950),
@@ -72,6 +73,7 @@ class BackendDiscoveryService {
   final bool? _androidEmuOverride;
   final bool? _desktopOverride;
   final Future<List<List<String>>> Function()? _subnetOverride;
+  final int apiPort;
 
   static const int _parallelProbes = 36;
 
@@ -261,7 +263,7 @@ class BackendDiscoveryService {
             : left);
     if (budget == Duration.zero) return false;
 
-    final base = AppConfig.buildApiBaseUrl(host.trim());
+    final base = AppConfig.buildApiBaseUrl(host.trim(), port: apiPort);
     final uri = Uri.parse('${base.replaceFirst(RegExp(r'/$'), '')}/health');
 
     try {

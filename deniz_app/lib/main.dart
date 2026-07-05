@@ -6,6 +6,7 @@ import 'domain/premium_performance_mode.dart';
 import 'home_screen.dart';
 import 'onboarding/onboarding_screen.dart';
 import 'services/app_preferences.dart';
+import 'services/app_settings_controller.dart';
 import 'services/crash_reporter.dart';
 import 'splash_screen.dart';
 import 'theme/app_theme.dart';
@@ -47,6 +48,7 @@ class _DenizAppState extends State<DenizApp> {
   bool _showOnboarding = true;
   bool _splashComplete = false;
   PremiumPerformanceMode _performanceMode = PremiumPerformanceMode.full;
+  final AppSettingsController _settingsController = AppSettingsController();
 
   @override
   void initState() {
@@ -58,6 +60,7 @@ class _DenizAppState extends State<DenizApp> {
     final results = await Future.wait([
       AppPreferences.isOnboardingComplete(),
       AppPreferences.getPerformanceMode(),
+      _settingsController.load(),
     ]);
     if (!mounted) return;
     setState(() {
@@ -87,11 +90,14 @@ class _DenizAppState extends State<DenizApp> {
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         theme: AppTheme.darkMarine(),
-        builder: (context, child) => PremiumPerformanceScope(
-          mode: _performanceMode,
-          onModeChanged: _onPerformanceModeChanged,
-          child: PremiumAmbientShell(
-            child: child ?? const SizedBox.shrink(),
+        builder: (context, child) => AppSettingsScope(
+          controller: _settingsController,
+          child: PremiumPerformanceScope(
+            mode: _performanceMode,
+            onModeChanged: _onPerformanceModeChanged,
+            child: PremiumAmbientShell(
+              child: child ?? const SizedBox.shrink(),
+            ),
           ),
         ),
         home: _bootReady != true

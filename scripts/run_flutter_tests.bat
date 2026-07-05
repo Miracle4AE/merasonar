@@ -1,19 +1,9 @@
 @echo off
 setlocal
 cd /d "%~dp0..\deniz_app"
-where flutter >nul 2>&1
-if errorlevel 1 (
-  if exist "C:\src\flutter\bin\flutter.bat" (
-    set "FLUTTER=C:\src\flutter\bin\flutter.bat"
-  ) else (
-    echo flutter not found in PATH
-    exit /b 1
-  )
-) else (
-  set "FLUTTER=flutter"
-)
-call %FLUTTER% pub get
-call %FLUTTER% analyze
+call "%~dp0flutter_exec.bat" pub get
 if errorlevel 1 exit /b 1
-call %FLUTTER% test
+call "%~dp0flutter_exec.bat" analyze
+if errorlevel 1 exit /b 1
+call "%~dp0flutter_exec.bat" test
 exit /b %ERRORLEVEL%

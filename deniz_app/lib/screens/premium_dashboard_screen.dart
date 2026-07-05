@@ -1,8 +1,10 @@
-import 'dart:async' show unawaited;
+import 'dart:async' show Timer, unawaited;
 
 import 'package:deniz_app/api_service.dart';
 import 'package:deniz_app/config/app_config.dart';
+import 'package:deniz_app/domain/app_settings.dart';
 import 'package:deniz_app/domain/dashboard_overview.dart';
+import 'package:deniz_app/services/app_settings_controller.dart';
 import 'package:deniz_app/services/dashboard_overview_service.dart';
 import 'package:deniz_app/theme/app_colors.dart';
 import 'package:deniz_app/utils/layout_breakpoints.dart';
@@ -57,32 +59,83 @@ class PremiumDashboardScreen extends StatefulWidget {
 class _PremiumDashboardScreenState extends State<PremiumDashboardScreen> {
   DashboardOverview _overview = DashboardOverview.empty;
   bool _loading = true;
+  Timer? _autoRefreshTimer;
+  bool _bootstrapped = false;
+
+  DashboardOverviewService? _cachedService;
 
   DashboardOverviewService get _service =>
       widget.overviewService ??
+      _cachedService ??
       DashboardOverviewService(
         apiService: ApiService(
-          serverBaseUrl: AppConfig.buildApiBaseUrl(widget.serverIp.trim()),
+          serverBaseUrl: AppConfig.buildApiBaseUrl(
+            widget.serverIp.trim(),
+            port: AppSettingsScope.of(context).settings.serverPort,
+          ),
         ),
       );
+
+  AppSettingsController get _settings => AppSettingsScope.of(context);
 
   @override
   void initState() {
     super.initState();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_bootstrapped) {
+      _scheduleAutoRefresh();
+      return;
+    }
+    _bootstrapped = true;
+    _cachedService ??= widget.overviewService ??
+        DashboardOverviewService(
+          apiService: ApiService(
+            serverBaseUrl: AppConfig.buildApiBaseUrl(
+              widget.serverIp.trim(),
+              port: AppSettingsScope.of(context).settings.serverPort,
+            ),
+          ),
+        );
+    final settings = _settings.settings;
     if (widget.initialOverview != null) {
       _overview = widget.initialOverview!.copyWith(
         connectionStatus: widget.connectionStatus,
       );
       _loading = false;
-      unawaited(_refreshTimelineInBackground());
+      if (settings.refreshLiveDataOnLaunch) {
+        unawaited(_refreshTimelineInBackground());
+      }
     } else {
-      unawaited(_reload(showSkeleton: true));
+      final showSkeleton = !settings.showCacheFirstThenRefresh;
+      unawaited(_reload(showSkeleton: showSkeleton));
     }
+    _scheduleAutoRefresh();
+  }
+
+  @override
+  void dispose() {
+    _autoRefreshTimer?.cancel();
+    super.dispose();
+  }
+
+  void _scheduleAutoRefresh() {
+    _autoRefreshTimer?.cancel();
+    final settings = _settings.settings;
+    if (!settings.autoRefreshEnabled) return;
+    _autoRefreshTimer = Timer.periodic(settings.autoRefreshInterval.duration, (_) {
+      if (!mounted) return;
+      unawaited(_reload(forceTimelineRefresh: true));
+    });
   }
 
   @override
   void didUpdateWidget(covariant PremiumDashboardScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
+    _scheduleAutoRefresh();
     if (oldWidget.connectionStatus != widget.connectionStatus &&
         widget.initialOverview == null) {
       setState(() {
@@ -114,6 +167,11 @@ class _PremiumDashboardScreenState extends State<PremiumDashboardScreen> {
       _overview = next;
       _loading = false;
     });
+    unawaited(_settings.recordDataSync());
+    if (!_settings.settings.refreshLiveDataOnLaunch &&
+        !forceTimelineRefresh) {
+      return;
+    }
     if (next.timeline.displayState !=
         DashboardTimelineDisplayState.noCoordinate) {
       unawaited(
@@ -150,6 +208,7 @@ class _PremiumDashboardScreenState extends State<PremiumDashboardScreen> {
     );
 
     setState(() => _overview = next);
+    unawaited(_settings.recordDataSync());
   }
 
   @override

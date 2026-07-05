@@ -396,6 +396,8 @@ Telefon/emülatör için sunucu IP’sini uygulama içinden girin (localhost tel
 | `scripts\check_secrets.py` | Repo içinde gizli key taraması |
 | `scripts\check_release_config.py` | Release config sanity (pubspec, manifest, checklist) |
 | `scripts\release_verify.bat` | Tam doğrulama; opsiyonel `windows` / `apk` / `all` build |
+| `scripts\flutter_exec.bat` | Nested-batch-safe Flutter launcher (`puro flutter`) |
+| `scripts\prepare_windows_build_drive.bat` | Non-ASCII repo yolu için `subst M:` (build öncesi) |
 | `scripts\run_flutter_tests.bat` | `flutter analyze` + `flutter test` |
 | `scripts\run_backend_tests.bat` | `pytest` |
 | `scripts\run_all_tests.bat` | Secret + release config + backend + flutter |
@@ -454,7 +456,7 @@ python scripts\check_release_artifacts.py ^
   --windows-zip deniz_app\MeraSonar-windows-release.zip
 ```
 
-**Not (Windows yerel build):** Repo yolu Türkçe/non-ASCII karakter içeriyorsa (`Deniz uygulaması` gibi) Flutter MSBuild/Gradle `app.dill` okuyamaz. `release_verify.bat` otomatik `subst M:` kullanır; alternatif olarak projeyi ASCII-only bir yola klonlayın. CI (`windows-latest` / `ubuntu-latest`) etkilenmez.
+**Not (Windows yerel build):** Repo yolu Türkçe/non-ASCII veya boşluk içeriyorsa Flutter AOT build başarısız olabilir. Önerilen yol: `C:\dev\merasonar`. Geçici çözüm: `scripts\prepare_windows_build_drive.bat` → `M:` → `set MERASONAR_BUILD_DRIVE=M:` → `scripts\release_verify.bat all`. Puro Flutter için: `set FLUTTER_BIN=%USERPROFILE%\.puro\envs\stable\flutter\bin\flutter.bat`. Ayrıntılar: `docs/BUILD_WINDOWS.md`. CI etkilenmez.
 
 ### Crash reporting (RC Phase 2)
 

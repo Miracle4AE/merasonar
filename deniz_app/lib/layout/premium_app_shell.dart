@@ -5,6 +5,7 @@ import '../l10n/app_strings_tr.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_text_styles.dart';
+import '../services/app_settings_controller.dart';
 import '../utils/layout_breakpoints.dart';
 import '../widgets/backend_connection_badge.dart';
 import '../navigation/captain_atlas_launcher.dart';
@@ -241,7 +242,10 @@ class _PremiumAppShellState extends State<PremiumAppShell> {
   @override
   Widget build(BuildContext context) {
     final mobile = useMobileLayout(context);
-    final sidebarWidth = useDesktopLayout(context) ? 172.0 : 72.0;
+    final compactPref =
+        AppSettingsScope.maybeOf(context)?.settings.compactView ?? false;
+    final desktop = useDesktopLayout(context) && !compactPref;
+    final sidebarWidth = desktop ? 172.0 : 72.0;
 
     final body = Row(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -249,7 +253,7 @@ class _PremiumAppShellState extends State<PremiumAppShell> {
         if (!mobile)
           SizedBox(
             width: sidebarWidth,
-            child: _sidebarContent(compact: !useDesktopLayout(context)),
+            child: _sidebarContent(compact: !desktop),
           ),
         Expanded(
           child: Column(
