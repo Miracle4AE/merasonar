@@ -106,7 +106,7 @@ jobs:
         run: |
           $src = "build/windows/x64/runner/Release"
           if (-not (Test-Path $src)) { throw "Missing $src" }
-          Compress-Archive -Path "$src/*" -DestinationPath "../MeraSonar-windows-release.zip" -Force
+          Compress-Archive -Path "$src/*" -DestinationPath "MeraSonar-windows-release.zip" -Force
       - name: Artifact sanity check
         working-directory: ${{ github.workspace }}
         shell: bash
