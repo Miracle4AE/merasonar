@@ -6,7 +6,7 @@
 
 ## RC1 Build9.6 — Map Calibration Confidence Manual QA
 
-**Date:** 2026-07-05 · **Tag:** `v1.0.0-rc1-build9.6` (local rebuild + CI pending)
+**Date:** 2026-07-05 · **Tag:** `v1.0.0-rc1-build9.6.1` · **CI run:** [28740932100](https://github.com/Miracle4AE/merasonar/actions/runs/28740932100)
 
 | Scenario | W | Status | Notes |
 |----------|---|--------|-------|

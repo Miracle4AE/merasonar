@@ -8,10 +8,10 @@
 
 | Öğe | Değer |
 |-----|--------|
-| Final tag | `v1.0.0-rc1-build9.6` |
-| Commit | Pending push |
-| GitHub Release Build | Pending — tag push sonrası güncellenecek |
-| Prior CI green | [run 28735788133](https://github.com/Miracle4AE/merasonar/actions/runs/28735788133) (build9.5) |
+| Final tag | `v1.0.0-rc1-build9.6.1` (CI green · dağıtım) |
+| Commit | `ce048b9` |
+| GitHub Release Build | **Passed** — [run 28740932100](https://github.com/Miracle4AE/merasonar/actions/runs/28740932100) |
+| Not | `v1.0.0-rc1-build9.6` analyze fail ([28740877374](https://github.com/Miracle4AE/merasonar/actions/runs/28740877374)); dağıtım **build9.6.1** |
 | CI artifacts | APK + Windows folder + zip uploaded |
 | Lokal Rebuild #9.6 hashleri | **Current** — aşağıdaki tablolar |
 | Dağıtım | CI artifact veya lokal `MeraSonar-windows-release.zip` / `app-release.apk` |
@@ -24,8 +24,8 @@
 |-----|--------|
 | Repository | https://github.com/Miracle4AE/merasonar |
 | Branch | `main` |
-| Tag | `v1.0.0-rc1-build9.6` (pending) · `v1.0.0-rc1-build9.5` @ `f9a5e2a` · `v1.0.0-rc1` @ `8fc4e99` (legacy) |
-| Release Build CI | Pending build9.6 · prior [28735788133](https://github.com/Miracle4AE/merasonar/actions/runs/28735788133) (build9.5) |
+| Tag | `v1.0.0-rc1-build9.6.1` @ `ce048b9` (final CI green) · `v1.0.0-rc1-build9.6` (analyze fail) · `v1.0.0-rc1-build9.5` @ `f9a5e2a` |
+| Release Build CI | **Passed** — [28740932100](https://github.com/Miracle4AE/merasonar/actions/runs/28740932100) (build9.6.1) |
 | CI artifacts | `MeraSonar-android-apk`, `MeraSonar-windows-release`, `MeraSonar-windows-release-zip` |
 
 **CI artifact indirme:** GitHub Actions → Release Build run → Artifacts bölümü.
@@ -55,23 +55,33 @@
 
 ## Dağıtım artifact’leri
 
-### Windows
+### Windows (CI build9.6.1 — dağıtım)
 
-| Öğe | Yol |
-|-----|-----|
-| Release klasörü | `deniz_app/build/windows/x64/runner/Release/` |
-| Çalıştırılabilir | `MeraSonar.exe` |
-| Zip paketi | `deniz_app/MeraSonar-windows-release.zip` |
+| Öğe | Değer |
+|-----|--------|
+| CI run | [28740932100](https://github.com/Miracle4AE/merasonar/actions/runs/28740932100) |
+| Zip SHA256 | `3424a58fc18392ac67bfa4d514d53c88ecb73c7a1bd17d096bbdacec5aad6ecd` |
+| Exe SHA256 | `573c4a8f392f278bc038c7d53caa1422125b67e782c8c355421a25b1ce73353c` |
+| `data/app.so` SHA256 | `ce95b3fcdd8e9d5dc251759380e166633dda3c211f91a1afd0f8f45d6c73775b` |
+
+### Windows (lokal Rebuild #9.6)
+
+| Öğe | Değer |
+|-----|--------|
 | Zip SHA256 | `a9701c25abd3cc0d69145d6f608e6080430471d92b40269ff841ce46853975ef` |
 | Exe SHA256 | `385bc0a92a1e6a1e8c83bb22cd0f6c9d43bb6424b0f4358043d9febc2b3e2338` |
 | `data/app.so` SHA256 | `b44d56b747485a37d331c7c5f29fcc62e5de2e0ee28abdc88ba1a6a6bef8d473` |
 
-**Zip hash notu:** RC1 Build9.6 — Map Calibration Confidence Fix in `app.so`.
+### Android (CI build9.6.1 — dağıtım)
 
-### Android
+| Öğe | Değer |
+|-----|--------|
+| SHA256 | `ec99da4ba37e72ba1d90777ccd62e6e48d541c1d47eca12d168cdc83a0c7e14a` |
 
-| Öğe | Yol |
-|-----|-----|
+### Android (lokal Rebuild #9.6)
+
+| Öğe | Değer |
+|-----|--------|
 | APK | `deniz_app/build/app/outputs/flutter-apk/app-release.apk` |
 | SHA256 | `bf0ce1d6c418b6dd0e2b0e8f850a011eb664bff1fbf186cbf09dd1ae599b6f58` |
 | İmzalama | Flutter debug/release keystore (Play upload key değil) |
