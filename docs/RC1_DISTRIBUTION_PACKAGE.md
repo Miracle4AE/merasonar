@@ -6,6 +6,17 @@
 
 **Ops note (2026-07-05):** Script-only cleanup — Flutter auto-detection (`FLUTTER_BIN` / PATH / puro), `prepare_windows_build_drive.bat`, `docs/BUILD_WINDOWS.md`. **No app binary changes; Rebuild #9 artifacts remain current.**
 
+## Final RC1 Build Tag
+
+| Öğe | Değer |
+|-----|--------|
+| Final tag | `v1.0.0-rc1-build9.5` |
+| Commit | `f9a5e2a` |
+| GitHub Release Build | **Passed** — [run 28735788133](https://github.com/Miracle4AE/merasonar/actions/runs/28735788133) |
+| CI artifacts | APK + Windows folder + zip uploaded |
+| Lokal Rebuild #9 hashleri | Korunuyor (yeni lokal rebuild yok) |
+| Dağıtım | CI artifact veya lokal `MeraSonar-windows-release.zip` / `app-release.apk` |
+
 ---
 
 ## Git / CI
@@ -14,8 +25,8 @@
 |-----|--------|
 | Repository | https://github.com/Miracle4AE/merasonar |
 | Branch | `main` |
-| Tag | `v1.0.0-rc1` @ `8fc4e99584acfb995ab461a69859bb0ce966df1a` |
-| Release Build CI | **Passed** — run [28732259611](https://github.com/Miracle4AE/merasonar/actions/runs/28732259611) |
+| Tag | `v1.0.0-rc1-build9.5` @ `f9a5e2a` (final CI green) · `v1.0.0-rc1` @ `8fc4e99` (legacy) |
+| Release Build CI | **Passed** — [28735788133](https://github.com/Miracle4AE/merasonar/actions/runs/28735788133) (build9.5) |
 | CI artifacts | `MeraSonar-android-apk`, `MeraSonar-windows-release`, `MeraSonar-windows-release-zip` |
 
 **CI artifact indirme:** GitHub Actions → Release Build run → Artifacts bölümü.
