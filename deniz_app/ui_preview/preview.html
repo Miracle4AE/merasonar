@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Deniz — arayüz önizleme (statik)</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: #060b12;
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: #0b1a2a;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    header h1 { font-size: 15px; font-weight: 600; margin: 0; }
+    .map {
+      flex: 1;
+      background: linear-gradient(145deg, #0a1a2a 0%, #0d2a1a 50%, #081320 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255,255,255,0.25);
+      font-size: 14px;
+    }
+    .fab {
+      position: fixed;
+      right: 16px;
+      bottom: 120px;
+      background: #114b5f;
+      color: #fff;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 24px;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      cursor: default;
+    }
+    .trust {
+      background: rgba(16, 20, 24, 0.9);
+      border-top: 1px solid rgba(255,255,255,0.1);
+      padding: 10px 12px;
+      font-size: 12px;
+      line-height: 1.4;
+      color: rgba(255,255,255,0.7);
+    }
+    .trust .row { display: flex; gap: 8px; align-items: flex-start; }
+    .trust svg { flex-shrink: 0; margin-top: 2px; }
+    .status {
+      position: fixed;
+      left: 12px;
+      right: 12px;
+      bottom: 88px;
+      background: rgba(11, 26, 42, 0.8);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 13px;
+      color: #fff;
+    }
+    .note {
+      text-align: center;
+      font-size: 11px;
+      color: rgba(255,255,255,0.4);
+      padding: 6px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Deniz Yapı Analizi (192.168.x.x:8000)</h1>
+    <span style="font-size:12px;opacity:0.6">⋯</span>
+  </header>
+  <div class="map">Harita / chart overlay alanı (Flutter)</div>
+  <div class="status">Henüz analiz yok. «Alanı Tara» ile başlayın.</div>
+  <button type="button" class="fab">Alanı Tara</button>
+  <div class="trust">
+    <div class="row">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4fc3f7" stroke-width="1.5">
+        <path d="M12 3L4 6v5c0 5 3.5 8.5 8 9.5 4.5-1 8-4.5 8-9.5V6l-8-3z"/>
+      </svg>
+      <div>
+        Sonuçlar tavsiye niteliğindedir. Resmi deniz bilgisi, hava ve güvenli seyir ile çeliştiğinde her zaman o kaynaklara ve yerel yönetmeliklere uyun.
+        <br /><span style="color:#7fd7ff">Tam metin / feragat</span> · <span>Bandı daralt</span>
+      </div>
+    </div>
+  </div>
+  <p class="note">Statik HTML önizleme. Gerçek uygulama: <code>cd deniz_app</code> → <code>flutter run -d chrome</code> veya <code>-d windows</code></p>
+</body>
+</html>

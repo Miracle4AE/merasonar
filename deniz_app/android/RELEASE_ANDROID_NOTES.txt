@@ -1,0 +1,17 @@
+Release / security notes (Android)
+=================================
+
+1) Cleartext HTTP (http:// to a LAN IP)
+   - `res/xml/network_security_config.xml` allows cleartext so the app can reach a local FastAPI backend.
+   - Production on the public Internet should serve the API over HTTPS; then tighten the config
+     (`cleartextTrafficPermitted` false on base-config).
+
+2) Package name / signing
+   - Update `applicationId` in `app/build.gradle.kts` before Play Store submission.
+   - Replace placeholder signing (currently debug keys in release).
+
+3) Launcher icon
+   - Replace `android/app/src/main/res/mipmap-*/ic_launcher.png`.
+
+4) Permissions
+   - Location and photo rationales can be surfaced in-app (Play policy); strings live in Flutter UI today.

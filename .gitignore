@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.venv/
+venv/
+.env
+.env.local
+.env.production
+.env.*.local
+!.env.example
+*.egg-info/
+.eggs/
+dist/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+
+# Flutter (monorepo kökünden)
+deniz_app/build/
+deniz_app/.dart_tool/
+deniz_app/.flutter-plugins
+deniz_app/.flutter-plugins-dependencies
+deniz_app/**/doc/api/
+deniz_app/coverage/
+
+# OS / editör
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.idea/
+
+# Geçici / log
+*.log
+run_logs/
+tmp/
+temp/
+*.tmp
+marine_spots.db
+**/marine_spots.db
+ai_telemetry.jsonl
+**/ai_telemetry.jsonl
+
+# Release build artifacts (local; CI uploads via Actions)
+deniz_app/MeraSonar-windows-release.zip
