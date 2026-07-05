@@ -1,6 +1,6 @@
-/// Dashboard genel bakış view model — UI-2.
-
 library;
+
+import 'package:deniz_app/domain/dashboard_map_preview_projection.dart';
 
 enum DashboardConnectionStatus {
   connected,
@@ -378,11 +378,33 @@ enum DashboardMapMarkerType {
   hotspot,
 }
 
+enum DashboardMapPreviewMarkerKind {
+  hotspot,
+  savedSpot,
+  compare,
+  boat,
+  activeCoordinate,
+}
+
+enum DashboardMapPreviewMarkerSource {
+  marineReport,
+  savedSpot,
+  compare,
+  unknown,
+}
+
+enum DashboardMapPreviewMarkerConfidence {
+  high,
+  medium,
+  low,
+}
+
 enum DashboardMapPreviewMode {
   activeReport,
   savedSpots,
   compare,
   empty,
+  limited,
 }
 
 class DashboardMapMarker {
@@ -395,7 +417,11 @@ class DashboardMapMarker {
     this.lon,
     this.score,
     this.markerType = DashboardMapMarkerType.savedSpot,
+    this.markerKind,
+    this.markerSource,
+    this.confidence,
     this.isPrimary = false,
+    this.isSelected = false,
     this.isCompareA = false,
     this.isCompareB = false,
     this.isFavorite = false,
@@ -409,10 +435,17 @@ class DashboardMapMarker {
   final double? lon;
   final int? score;
   final DashboardMapMarkerType markerType;
+  final DashboardMapPreviewMarkerKind? markerKind;
+  final DashboardMapPreviewMarkerSource? markerSource;
+  final DashboardMapPreviewMarkerConfidence? confidence;
   final bool isPrimary;
+  final bool isSelected;
   final bool isCompareA;
   final bool isCompareB;
   final bool isFavorite;
+
+  bool get hasGeo => lat != null && lon != null;
+  bool get hasScoreOrb => score != null && hasGeo;
 }
 
 class DashboardMapPreviewData {
@@ -434,6 +467,12 @@ class DashboardMapPreviewData {
     this.windLabel,
     this.dataSourceLabel,
     this.emptyReason,
+    this.selectedMarkerId,
+    this.bounds,
+    this.depthLegendMinLabel,
+    this.depthLegendMaxLabel,
+    this.warningLabel,
+    this.isLowConfidence = false,
   });
 
   final double? centerLat;
@@ -453,8 +492,28 @@ class DashboardMapPreviewData {
   final String? windLabel;
   final String? dataSourceLabel;
   final String? emptyReason;
+  final String? selectedMarkerId;
+  final DashboardMapPreviewBounds? bounds;
+  final String? depthLegendMinLabel;
+  final String? depthLegendMaxLabel;
+  final String? warningLabel;
+  final bool isLowConfidence;
 
-  bool get hasData => displayMode != DashboardMapPreviewMode.empty;
+  bool get hasData =>
+      displayMode != DashboardMapPreviewMode.empty &&
+      displayMode != DashboardMapPreviewMode.limited;
+
+  bool get hasRealData =>
+      hasRealCoordinate &&
+      markers.any((m) => m.hasScoreOrb);
+
+  DashboardMapMarker? get selectedMarker {
+    if (selectedMarkerId == null) return null;
+    for (final m in markers) {
+      if (m.id == selectedMarkerId) return m;
+    }
+    return null;
+  }
 }
 
 class DashboardOverview {

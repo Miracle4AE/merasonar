@@ -53,6 +53,7 @@ MarineSavedSpot _spot({
   required double lat,
   required double lon,
   bool favorite = false,
+  int? goScore,
 }) {
   return MarineSavedSpot(
     id: id,
@@ -62,6 +63,14 @@ MarineSavedSpot _spot({
     favorite: favorite,
     createdAt: '2026-01-01T00:00:00Z',
     updatedAt: '2026-07-01T00:00:00Z',
+    lastReport: goScore != null
+        ? MarineIntelligenceReportSnapshot.fromJson(
+            _reportAt(lat: lat, lon: lon, goScore: goScore).toJson(),
+          )
+        : null,
+    lastReportAt: goScore != null
+        ? DateTime.now().toUtc().toIso8601String()
+        : null,
   );
 }
 
@@ -123,9 +132,11 @@ void main() {
 
       final overview = await DashboardOverviewService(marineCache: cache).load();
       expect(overview.mapPreview.hasRealCoordinate, isTrue);
+      expect(overview.mapPreview.hasRealData, isTrue);
       expect(overview.mapPreview.displayMode, DashboardMapPreviewMode.activeReport);
       expect(overview.mapPreview.centerLat, closeTo(41.01, 0.001));
       expect(overview.mapPreview.score, 58);
+      expect(overview.mapPreview.selectedMarkerId, isNotNull);
       expect(overview.mapPreview.waveLabel, contains('m'));
       expect(overview.mapPreview.currentLabel, contains('m/s'));
       expect(overview.mapPreview.windLabel, contains('km/s'));
@@ -139,13 +150,14 @@ void main() {
       SharedPreferences.setMockInitialValues({});
       final cache = MarineIntelligenceCache();
       await cache.saveSavedSpots([
-        _spot(id: 's1', name: 'Koy A', lat: 40.5, lon: 28.9, favorite: true),
-        _spot(id: 's2', name: 'Koy B', lat: 40.52, lon: 28.95),
+        _spot(id: 's1', name: 'Koy A', lat: 40.5, lon: 28.9, favorite: true, goScore: 72),
+        _spot(id: 's2', name: 'Koy B', lat: 40.52, lon: 28.95, goScore: 58),
       ]);
 
       final overview = await DashboardOverviewService(marineCache: cache).load();
       expect(overview.mapPreview.displayMode, DashboardMapPreviewMode.savedSpots);
       expect(overview.mapPreview.hasRealCoordinate, isTrue);
+      expect(overview.mapPreview.hasRealData, isTrue);
       expect(overview.mapPreview.markers.length, 2);
       expect(
         overview.mapPreview.markers.every(
@@ -187,7 +199,7 @@ void main() {
       expect(find.text(kPremiumDashScoreLabel), findsNothing);
     });
 
-    testWidgets('report coordinate shows labels and score chip', (tester) async {
+    testWidgets('report coordinate shows live score chip and painter', (tester) async {
       await tester.pumpWidget(
         _mapCardHarness(
           DashboardMapPreviewData(
@@ -198,17 +210,22 @@ void main() {
             updatedAgoLabel: '2 dk',
             hasRealCoordinate: true,
             displayMode: DashboardMapPreviewMode.activeReport,
+            selectedMarkerId: 'report',
             waveLabel: '0.8 m',
             windLabel: '12 km/s',
             dataSourceLabel: kPremiumDashMapSourceReport,
+            depthLegendMinLabel: kPremiumDashMapDepthMin,
+            depthLegendMaxLabel: kPremiumDashMapDepthMax,
             markers: const [
               DashboardMapMarker(
                 normalizedX: 0.5,
                 normalizedY: 0.5,
+                id: 'report',
                 lat: 41.01,
                 lon: 29.0,
                 score: 75,
                 isPrimary: true,
+                isSelected: true,
                 markerType: DashboardMapMarkerType.report,
               ),
             ],
@@ -218,10 +235,57 @@ void main() {
       await tester.pump();
 
       expect(find.text(kPremiumDashScoreLabel), findsOneWidget);
+      expect(find.text(kPremiumDashMapDepthMin), findsOneWidget);
       expect(find.text(kPremiumDashMapLastUpdate), findsOneWidget);
       expect(find.text(kPremiumDashMapWave), findsOneWidget);
       expect(find.textContaining('Son koordinat'), findsOneWidget);
       expect(find.byType(CustomPaint), findsWidgets);
+    });
+
+    testWidgets('low confidence chip renders when flagged', (tester) async {
+      await tester.pumpWidget(
+        _mapCardHarness(
+          DashboardMapPreviewData(
+            centerLat: 41.01,
+            centerLon: 29.0,
+            hasRealCoordinate: true,
+            isLowConfidence: true,
+            displayMode: DashboardMapPreviewMode.activeReport,
+            markers: const [
+              DashboardMapMarker(
+                normalizedX: 0.5,
+                normalizedY: 0.5,
+                id: 'report',
+                lat: 41.01,
+                lon: 29.0,
+                score: 75,
+                isSelected: true,
+                markerType: DashboardMapMarkerType.report,
+              ),
+            ],
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(find.text(kPremiumDashMapLowConfidence), findsOneWidget);
+    });
+
+    testWidgets('limited mode shows honest empty message without score chip', (tester) async {
+      await tester.pumpWidget(
+        _mapCardHarness(
+          DashboardMapPreviewData(
+            centerLat: 41.01,
+            centerLon: 29.0,
+            centerLabel: '41.0100, 29.0000',
+            hasRealCoordinate: true,
+            displayMode: DashboardMapPreviewMode.limited,
+            emptyReason: kPremiumDashMapEmptyNeedsAnalysis,
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(find.text(kPremiumDashMapEmptyNeedsAnalysis), findsOneWidget);
+      expect(find.text(kPremiumDashScoreLabel), findsNothing);
     });
 
     testWidgets('saved spots mode lists coordinate footer', (tester) async {

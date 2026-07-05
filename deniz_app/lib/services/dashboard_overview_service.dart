@@ -1,4 +1,6 @@
 import 'package:deniz_app/api_service.dart';
+import 'package:deniz_app/domain/calibration_geometry.dart';
+import 'package:deniz_app/domain/dashboard_map_preview_projection.dart';
 import 'package:deniz_app/domain/dashboard_overview.dart';
 import 'package:deniz_app/domain/marine_compare.dart';
 import 'package:deniz_app/domain/marine_intelligence_report.dart';
@@ -105,6 +107,7 @@ class DashboardOverviewService {
     final compareRaw = await _marineCache.loadLastCompare();
     final catchEntries = await _marineCache.loadRecentCatchSummaries();
     final fishingZone = await _localStorage.loadLatestFishingZoneResponse();
+    final calibrationProfiles = await _localStorage.loadCalibrationProfiles();
     final reportSyncedAt = await _marineCache.lastReportSyncedAt();
 
     final lastCoordinate = resolveLastCoordinate(
@@ -134,6 +137,7 @@ class DashboardOverviewService {
       compare: compareRaw,
       fishingZone: fishingZone,
       reportSyncedAt: reportSyncedAt,
+      calibrationProfiles: calibrationProfiles,
     );
 
     return DashboardOverview(
@@ -742,9 +746,10 @@ class DashboardOverviewService {
     required MarineCompareResponse? compare,
     required FishingZoneResponse? fishingZone,
     required String? reportSyncedAt,
+    List<ChartCalibrationProfile> calibrationProfiles = const [],
   }) {
     bool coordValid(double lat, double lon) =>
-        lat.abs() > 1e-6 || lon.abs() > 1e-6;
+        DashboardMapPreviewProjection.coordValid(lat, lon);
 
     final sortedSpots = _sortedSpots(spots);
     final markers = <DashboardMapMarker>[];
@@ -869,43 +874,59 @@ class DashboardOverviewService {
       dataSourceLabel = kPremiumDashMapRealData;
     }
 
-    final bounds = _computeBounds(lats: allLats, lons: allLons);
+    final bounds = allLats.isEmpty
+        ? DashboardMapPreviewBounds.empty
+        : DashboardMapPreviewProjection.computeBounds(
+            lats: allLats,
+            lons: allLons,
+          );
+
+    String? recommendedHotspotId;
+    for (final h in geoHotspots) {
+      if (h.recommendationRank == 1) {
+        recommendedHotspotId = 'hotspot_${h.id}';
+        break;
+      }
+    }
 
     if (report != null &&
         coordValid(report.coordinate.lat, report.coordinate.lon)) {
-      final pos =
-          _normalizeLatLon(report.coordinate.lat, report.coordinate.lon, bounds);
+      final reportScore = report.decision?.goScore ??
+          report.fishingScore.suitabilityScore;
       markers.add(
         DashboardMapMarker(
-          normalizedX: pos.$1,
-          normalizedY: pos.$2,
+          normalizedX: 0,
+          normalizedY: 0,
           id: 'report',
           label: centerLabel ?? '',
           lat: report.coordinate.lat,
           lon: report.coordinate.lon,
-          score: report.decision?.goScore ??
-              report.fishingScore.suitabilityScore,
+          score: reportScore,
           markerType: DashboardMapMarkerType.report,
+          markerKind: DashboardMapPreviewMarkerKind.activeCoordinate,
+          markerSource: DashboardMapPreviewMarkerSource.marineReport,
           isPrimary: true,
         ),
       );
     }
 
     for (final s in validSpots) {
-      final pos = _normalizeLatLon(s.lat, s.lon, bounds);
+      final spotScore = s.lastReport?.decision?.goScore ??
+          s.lastReport?.fishingScore.suitabilityScore;
       final isPrimarySpot =
           report == null && centerLat == s.lat && centerLon == s.lon;
       markers.add(
         DashboardMapMarker(
-          normalizedX: pos.$1,
-          normalizedY: pos.$2,
+          normalizedX: 0,
+          normalizedY: 0,
           id: s.id,
           label: s.name,
           lat: s.lat,
           lon: s.lon,
-          score: s.lastReport?.decision?.goScore ??
-              s.lastReport?.fishingScore.suitabilityScore,
+          score: spotScore,
           markerType: DashboardMapMarkerType.savedSpot,
+          markerKind: DashboardMapPreviewMarkerKind.savedSpot,
+          markerSource: DashboardMapPreviewMarkerSource.savedSpot,
           isFavorite: s.favorite,
           isPrimary: isPrimarySpot && !markers.any((m) => m.isPrimary),
         ),
@@ -915,51 +936,67 @@ class DashboardOverviewService {
     if (hasComparePair && compareLeft != null && compareRight != null) {
       final left = compareLeft.coordinate;
       final right = compareRight.coordinate;
-      final leftPos = _normalizeLatLon(left.lat, left.lon, bounds);
-      final rightPos = _normalizeLatLon(right.lat, right.lon, bounds);
       markers.add(
         DashboardMapMarker(
-          normalizedX: leftPos.$1,
-          normalizedY: leftPos.$2,
+          normalizedX: 0,
+          normalizedY: 0,
           id: 'compare_a',
           label: kMarineComparePointA,
           lat: left.lat,
           lon: left.lon,
           score: compareLeft.fishingScore.suitabilityScore,
           markerType: DashboardMapMarkerType.compareA,
+          markerKind: DashboardMapPreviewMarkerKind.compare,
+          markerSource: DashboardMapPreviewMarkerSource.compare,
           isCompareA: true,
         ),
       );
       markers.add(
         DashboardMapMarker(
-          normalizedX: rightPos.$1,
-          normalizedY: rightPos.$2,
+          normalizedX: 0,
+          normalizedY: 0,
           id: 'compare_b',
           label: kMarineComparePointB,
           lat: right.lat,
           lon: right.lon,
           score: compareRight.fishingScore.suitabilityScore,
           markerType: DashboardMapMarkerType.compareB,
+          markerKind: DashboardMapPreviewMarkerKind.compare,
+          markerSource: DashboardMapPreviewMarkerSource.compare,
           isCompareB: true,
         ),
       );
     }
 
-    for (final h in geoHotspots.take(4)) {
-      final pos = _normalizeLatLon(h.latitude, h.longitude, bounds);
+    for (final h in geoHotspots.take(8)) {
       markers.add(
         DashboardMapMarker(
-          normalizedX: pos.$1,
-          normalizedY: pos.$2,
+          normalizedX: 0,
+          normalizedY: 0,
           id: 'hotspot_${h.id}',
-          label: kPremiumDashMapRealData,
+          label: h.featureType,
           lat: h.latitude,
           lon: h.longitude,
           score: h.score.round(),
           markerType: DashboardMapMarkerType.hotspot,
+          markerKind: DashboardMapPreviewMarkerKind.hotspot,
+          markerSource: DashboardMapPreviewMarkerSource.marineReport,
+          confidence: _hotspotConfidence(h),
         ),
       );
     }
+
+    var projected = DashboardMapPreviewProjection.applyProjection(markers);
+    final selectedId = DashboardMapPreviewProjection.selectMarkerId(
+      markers: projected,
+      explicitSelectedId: recommendedHotspotId,
+      centerLat: centerLat,
+      centerLon: centerLon,
+    );
+    projected = DashboardMapPreviewProjection.markSelected(
+      projected,
+      selectedId: selectedId,
+    );
 
     DashboardMapPreviewMode displayMode;
     if (hasComparePair) {
@@ -979,6 +1016,25 @@ class DashboardOverviewService {
         centerLon != null &&
         coordValid(centerLat, centerLon);
 
+    final hasScorableMarkers =
+        DashboardMapPreviewProjection.hasScorableMarkers(projected);
+
+    String? emptyReason;
+    String? warningLabel;
+    var isLowConfidence = false;
+
+    if (calibrationProfiles.isNotEmpty) {
+      final profile = calibrationProfiles.first;
+      if (profile.controlPoints.length >= 3) {
+        final geos = profile.controlPoints.map((p) => p.geo);
+        final assessment = assessGeoTriangle(geos);
+        if (assessment.level == CalibrationGeometryLevel.lowConfidence) {
+          isLowConfidence = true;
+          warningLabel = kCalibLowConfidenceHelper;
+        }
+      }
+    }
+
     if (!hasRealCoordinate) {
       displayMode = DashboardMapPreviewMode.empty;
       centerLat = null;
@@ -986,7 +1042,7 @@ class DashboardOverviewService {
       centerLabel = null;
       score = null;
       scoreLabel = null;
-      markers.clear();
+      projected = const [];
       hasComparePair = false;
       winnerLabel = null;
       hotspotCount = null;
@@ -995,6 +1051,12 @@ class DashboardOverviewService {
       windLabel = null;
       dataSourceLabel = null;
       updatedAgoLabel = null;
+      emptyReason = kPremiumDashMapEmptyAwaiting;
+    } else if (!hasScorableMarkers) {
+      displayMode = DashboardMapPreviewMode.limited;
+      emptyReason = geoHotspots.isEmpty && report != null
+          ? kPremiumDashMapEmptyNeedsAnalysis
+          : kPremiumDashMapEmptyInsufficientHotspots;
     }
 
     return DashboardMapPreviewData(
@@ -1004,7 +1066,7 @@ class DashboardOverviewService {
       score: score,
       scoreLabel: scoreLabel,
       updatedAgoLabel: updatedAgoLabel,
-      markers: markers,
+      markers: projected,
       hasComparePair:
           hasComparePair && displayMode == DashboardMapPreviewMode.compare,
       hotspotCount: hotspotCount,
@@ -1015,8 +1077,25 @@ class DashboardOverviewService {
       currentLabel: currentLabel,
       windLabel: windLabel,
       dataSourceLabel: dataSourceLabel,
-      emptyReason: hasRealCoordinate ? null : kPremiumDashMapEmptyAwaiting,
+      emptyReason: emptyReason,
+      selectedMarkerId: selectedId,
+      bounds: allLats.isEmpty ? null : bounds,
+      depthLegendMinLabel: kPremiumDashMapDepthMin,
+      depthLegendMaxLabel: kPremiumDashMapDepthMax,
+      warningLabel: warningLabel,
+      isLowConfidence: isLowConfidence,
     );
+  }
+
+  static DashboardMapPreviewMarkerConfidence? _hotspotConfidence(Hotspot h) {
+    final trust = h.trustState.toLowerCase();
+    if (trust.contains('high') || trust.contains('confirmed')) {
+      return DashboardMapPreviewMarkerConfidence.high;
+    }
+    if (trust.contains('low') || trust.contains('weak')) {
+      return DashboardMapPreviewMarkerConfidence.low;
+    }
+    return DashboardMapPreviewMarkerConfidence.medium;
   }
 
   static DashboardConnectionStatus mapHealthStatus({
@@ -1148,44 +1227,6 @@ class DashboardOverviewService {
     if (trimmed.isEmpty) return kPremiumCaptainCardBadge;
     if (trimmed.length <= 8) return trimmed;
     return trimmed.split('_').last;
-  }
-
-  ({double minLat, double maxLat, double minLon, double maxLon}) _computeBounds({
-    required List<double> lats,
-    required List<double> lons,
-  }) {
-    if (lats.isEmpty || lons.isEmpty) {
-      return (minLat: 0, maxLat: 1, minLon: 0, maxLon: 1);
-    }
-    var minLat = lats.first;
-    var maxLat = lats.first;
-    var minLon = lons.first;
-    var maxLon = lons.first;
-    for (var i = 0; i < lats.length; i++) {
-      minLat = lats[i] < minLat ? lats[i] : minLat;
-      maxLat = lats[i] > maxLat ? lats[i] : maxLat;
-      minLon = lons[i] < minLon ? lons[i] : minLon;
-      maxLon = lons[i] > maxLon ? lons[i] : maxLon;
-    }
-    if ((maxLat - minLat).abs() < 0.001) {
-      minLat -= 0.01;
-      maxLat += 0.01;
-    }
-    if ((maxLon - minLon).abs() < 0.001) {
-      minLon -= 0.01;
-      maxLon += 0.01;
-    }
-    return (minLat: minLat, maxLat: maxLat, minLon: minLon, maxLon: maxLon);
-  }
-
-  (double, double) _normalizeLatLon(
-    double lat,
-    double lon,
-    ({double minLat, double maxLat, double minLon, double maxLon}) bounds,
-  ) {
-    final x = (lon - bounds.minLon) / (bounds.maxLon - bounds.minLon);
-    final y = 1 - (lat - bounds.minLat) / (bounds.maxLat - bounds.minLat);
-    return (x.clamp(0.08, 0.92), y.clamp(0.12, 0.88));
   }
 
   DateTime? _parseDate(String? raw) {

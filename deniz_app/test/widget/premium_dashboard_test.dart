@@ -796,7 +796,14 @@ void main() {
       ),
       findsWidgets,
     );
-    expect(find.text(kPremiumDashMapRealData), findsOneWidget);
+    expect(find.text(kPremiumDashMapDepthMin), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(DashboardV2MapCard),
+        matching: find.text(kPremiumDashScoreLabel),
+      ),
+      findsOneWidget,
+    );
   });
 
   testWidgets('Live score card dense render with Turkish Medium label', (tester) async {

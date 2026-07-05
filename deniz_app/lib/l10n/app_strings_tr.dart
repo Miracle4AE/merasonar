@@ -1100,6 +1100,15 @@ const String kPremiumDashMapSourceSavedSpot = 'Kayıtlı nokta';
 const String kPremiumDashMapSourceCompare = 'Karşılaştırma';
 const String kPremiumDashMapSavedSpotsCta = 'Kayıtlı Noktalar';
 const String kPremiumDashMapCompareCta = 'Karşılaştır';
+const String kPremiumDashMapDepthMin = '0 m';
+const String kPremiumDashMapDepthMax = '100+ m';
+const String kPremiumDashMapLowConfidence = 'Kalibrasyon düşük güven';
+const String kPremiumDashMapEmptyNeedsAnalysis =
+    'Son koordinat alındı, skor noktaları için analiz gerekli.';
+const String kPremiumDashMapEmptyNoGeo =
+    'Saha noktaları konumsal veri içermiyor.';
+const String kPremiumDashMapEmptyInsufficientHotspots =
+    'Harita önizlemesi için yeterli hotspot verisi yok.';
 
 // UI-10 — Mission Control Dashboard
 const String kMissionControlTitle = 'MeraSonar Mission Control';

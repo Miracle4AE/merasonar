@@ -1,12 +1,12 @@
-import 'dart:math' as math;
-
 import 'package:deniz_app/domain/dashboard_overview.dart';
 import 'package:deniz_app/l10n/app_strings_tr.dart';
+import 'package:deniz_app/services/app_settings_controller.dart';
 import 'package:deniz_app/theme/app_colors.dart';
 import 'package:deniz_app/theme/app_spacing.dart';
 import 'package:deniz_app/theme/app_text_styles.dart';
+import 'package:deniz_app/widgets/dashboard/v2/dashboard_map_preview_painter.dart';
 import 'package:deniz_app/widgets/dashboard/v2/dashboard_v2_helpers.dart';
-import 'package:deniz_app/services/app_settings_controller.dart';
+import 'package:deniz_app/widgets/premium/premium_animation_policy.dart';
 import 'package:deniz_app/widgets/premium/premium_card.dart';
 import 'package:deniz_app/widgets/premium/premium_metric_chip.dart';
 import 'package:flutter/material.dart';
@@ -27,20 +27,30 @@ class DashboardV2MapCard extends StatelessWidget {
   final VoidCallback? onCompareTap;
   final VoidCallback? onSavedSpotsTap;
 
+  bool get _showMapContent =>
+      data.hasData || data.displayMode == DashboardMapPreviewMode.limited;
+
+  bool get _showEmptyOverlay =>
+      data.displayMode == DashboardMapPreviewMode.empty ||
+      data.displayMode == DashboardMapPreviewMode.limited;
+
   @override
   Widget build(BuildContext context) {
-    final hasData = data.hasData;
-    final primaryMarker = data.markers.where((m) => m.isPrimary).toList();
+    final glowScale = PremiumAnimationPolicy.glowIntensity(context);
+    final reduceMotion = PremiumAnimationPolicy.reduceMotion(context);
     final showSource =
         AppSettingsScope.maybeOf(context)?.settings.showDataSourceLabels ?? true;
     final showMapSource = showSource &&
         (AppSettingsScope.maybeOf(context)?.settings.showMapPreviewSourceInfo ??
             true);
 
+    final scorableMarkers =
+        data.markers.where((m) => m.hasScoreOrb).take(8).toList(growable: false);
+
     return PremiumCard(
       glow: true,
       padding: EdgeInsets.zero,
-      onTap: hasData ? onTap : onMarineTap,
+      onTap: _showMapContent ? onTap : onMarineTap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -54,57 +64,45 @@ class DashboardV2MapCard extends StatelessWidget {
                   ),
                   child: RepaintBoundary(
                     child: CustomPaint(
-                      painter: _DashboardMapPainter(
-                        markers: data.markers.take(8).toList(growable: false),
+                      painter: DashboardMapPreviewPainter(
+                        markers: scorableMarkers,
                         hasComparePair: data.hasComparePair,
-                        hasData: hasData,
-                        primaryCenter: primaryMarker.isNotEmpty
-                            ? Offset(
-                                primaryMarker.first.normalizedX,
-                                primaryMarker.first.normalizedY,
-                              )
-                            : null,
+                        hasData: data.hasRealData,
+                        selectedMarkerId: data.selectedMarkerId,
+                        glowScale: glowScale,
+                        reduceMotion: reduceMotion,
                       ),
                       child: const SizedBox.expand(),
                     ),
                   ),
                 ),
-                if (data.score != null && hasData)
+                if (data.hasRealData)
                   Positioned(
                     top: AppSpacing.sm,
                     left: AppSpacing.sm,
-                    child: PremiumMetricChip(
-                      label: kPremiumDashScoreLabel,
-                      value: data.scoreLabel ?? '${data.score}',
-                      accentColor:
-                          DashboardV2Helpers.scoreColor(data.score),
-                    ),
+                    child: _liveScoreChip(context),
                   ),
-                if (data.dataSourceLabel != null && hasData && showMapSource)
+                if (data.isLowConfidence && _showMapContent)
                   Positioned(
                     top: AppSpacing.sm,
-                    left: data.score != null ? 88 : AppSpacing.sm,
+                    right: AppSpacing.sm,
+                    child: _lowConfidenceChip(),
+                  ),
+                if (data.dataSourceLabel != null &&
+                    data.hasRealData &&
+                    showMapSource)
+                  Positioned(
+                    top: 40,
+                    left: AppSpacing.sm,
                     child: PremiumMetricChip(
                       label: kPremiumDashMapDataSource,
                       value: data.dataSourceLabel!,
                     ),
                   ),
-                Positioned(
-                  top: AppSpacing.sm,
-                  right: AppSpacing.sm,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _overlayIcon(Icons.layers_outlined),
-                      const SizedBox(width: 4),
-                      _overlayIcon(Icons.tune_rounded),
-                    ],
-                  ),
-                ),
                 if (data.winnerLabel != null &&
                     data.displayMode == DashboardMapPreviewMode.compare)
                   Positioned(
-                    top: 44,
+                    top: AppSpacing.sm,
                     right: AppSpacing.sm,
                     child: PremiumMetricChip(
                       label: kMissionMapWinner,
@@ -112,29 +110,26 @@ class DashboardV2MapCard extends StatelessWidget {
                       accentColor: AppColors.accentGreen,
                     ),
                   ),
-                if (hasData && _hasMarineMetrics)
+                if (data.hasRealData && _hasMarineMetrics)
                   Positioned(
                     left: AppSpacing.sm,
                     right: AppSpacing.sm,
                     bottom: data.updatedAgoLabel != null ? 44 : AppSpacing.sm,
                     child: _marineMetricsRow(),
                   ),
-                if (data.hasRealCoordinate && hasData)
+                if (_showMapContent)
                   Positioned(
                     left: AppSpacing.sm,
                     bottom: data.updatedAgoLabel != null ? 44 : AppSpacing.sm,
-                    child: _scaleBadge(),
+                    child: _depthScale(),
                   ),
-                if (data.updatedAgoLabel != null && hasData)
+                if (data.updatedAgoLabel != null && _showMapContent)
                   Positioned(
                     right: AppSpacing.sm,
                     bottom: AppSpacing.sm,
-                    child: PremiumMetricChip(
-                      label: kPremiumDashMapLastUpdate,
-                      value: data.updatedAgoLabel!,
-                    ),
+                    child: _lastUpdateChip(),
                   ),
-                if (!hasData) ...[
+                if (_showEmptyOverlay) ...[
                   Positioned.fill(
                     child: DecoratedBox(
                       decoration: BoxDecoration(
@@ -143,7 +138,7 @@ class DashboardV2MapCard extends StatelessWidget {
                           end: Alignment.bottomCenter,
                           colors: [
                             Colors.transparent,
-                            AppColors.surfaceDark.withValues(alpha: 0.55),
+                            AppColors.surfaceDark.withValues(alpha: 0.62),
                           ],
                         ),
                       ),
@@ -163,6 +158,20 @@ class DashboardV2MapCard extends StatelessWidget {
                       ),
                     ),
                   ),
+                  if (data.warningLabel != null)
+                    Positioned(
+                      left: AppSpacing.md,
+                      right: AppSpacing.md,
+                      top: 72,
+                      child: Text(
+                        data.warningLabel!,
+                        textAlign: TextAlign.center,
+                        style: AppTextStyles.caption.copyWith(
+                          fontSize: 11,
+                          color: AppColors.accentAmber.withValues(alpha: 0.9),
+                        ),
+                      ),
+                    ),
                   Positioned(
                     left: 0,
                     right: 0,
@@ -176,7 +185,7 @@ class DashboardV2MapCard extends StatelessWidget {
                     ),
                   ),
                 ],
-                if (hasData &&
+                if (data.hasData &&
                     (data.displayMode == DashboardMapPreviewMode.compare ||
                         data.displayMode == DashboardMapPreviewMode.savedSpots))
                   Positioned(
@@ -188,7 +197,7 @@ class DashboardV2MapCard extends StatelessWidget {
               ],
             ),
           ),
-          if (data.centerLabel != null && hasData)
+          if (data.centerLabel != null && _showMapContent)
             Padding(
               padding: const EdgeInsets.fromLTRB(
                 AppSpacing.md,
@@ -221,6 +230,139 @@ class DashboardV2MapCard extends StatelessWidget {
     );
   }
 
+  Widget _liveScoreChip(BuildContext context) {
+    final selected = data.selectedMarker;
+    final score = selected?.score ?? data.score;
+    final label = selected?.score != null
+        ? '${selected!.score}'
+        : (data.scoreLabel ?? (data.score != null ? '${data.score}' : kPremiumDashNoData));
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceDark.withValues(alpha: 0.88),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppColors.borderSoft(alpha: 0.22)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            kPremiumDashScoreLabel,
+            style: AppTextStyles.caption.copyWith(
+              fontSize: 10,
+              color: AppColors.textMuted,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: AppTextStyles.caption.copyWith(
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              color: score != null
+                  ? DashboardV2Helpers.scoreColor(score)
+                  : AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Icon(
+            Icons.keyboard_arrow_down_rounded,
+            size: 16,
+            color: AppColors.textMuted,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _lowConfidenceChip() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.accentAmber.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: AppColors.accentAmber.withValues(alpha: 0.45)),
+      ),
+      child: Text(
+        kPremiumDashMapLowConfidence,
+        style: AppTextStyles.caption.copyWith(
+          fontSize: 10,
+          color: AppColors.accentAmber,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+
+  Widget _depthScale() {
+    final minLabel = data.depthLegendMinLabel ?? kPremiumDashMapDepthMin;
+    final maxLabel = data.depthLegendMaxLabel ?? kPremiumDashMapDepthMax;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
+      decoration: BoxDecoration(
+        color: AppColors.surfaceDark.withValues(alpha: 0.78),
+        borderRadius: BorderRadius.circular(4),
+        border: Border.all(color: AppColors.borderSoft(alpha: 0.15)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            minLabel,
+            style: AppTextStyles.caption.copyWith(fontSize: 10),
+          ),
+          const SizedBox(width: 6),
+          Container(
+            width: 48,
+            height: 3,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(2),
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.accentTeal.withValues(alpha: 0.35),
+                  AppColors.borderCyan.withValues(alpha: 0.85),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            maxLabel,
+            style: AppTextStyles.caption.copyWith(fontSize: 10),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _lastUpdateChip() {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 6,
+          height: 6,
+          decoration: BoxDecoration(
+            color: AppColors.accentGreen,
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.accentGreen.withValues(alpha: 0.45),
+                blurRadius: 4,
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 6),
+        PremiumMetricChip(
+          label: kPremiumDashMapLastUpdate,
+          value: data.updatedAgoLabel!,
+        ),
+      ],
+    );
+  }
+
   bool get _hasMarineMetrics =>
       data.waveLabel != null ||
       data.currentLabel != null ||
@@ -231,6 +373,7 @@ class DashboardV2MapCard extends StatelessWidget {
       DashboardMapPreviewMode.activeReport => kPremiumDashMapLastCoordinate,
       DashboardMapPreviewMode.savedSpots => kPremiumDashMapSavedSpot,
       DashboardMapPreviewMode.compare => kPremiumDashMapComparePoint,
+      DashboardMapPreviewMode.limited => kPremiumDashMapLastCoordinate,
       DashboardMapPreviewMode.empty => kPremiumDashMapLastCoordinate,
     };
   }
@@ -274,12 +417,14 @@ class DashboardV2MapCard extends StatelessWidget {
       DashboardMapPreviewMode.compare => kPremiumDashMapCompareCta,
       DashboardMapPreviewMode.savedSpots => kPremiumDashMapSavedSpotsCta,
       DashboardMapPreviewMode.activeReport => kPremiumDashMapCta,
+      DashboardMapPreviewMode.limited => kMissionScoreCta,
       DashboardMapPreviewMode.empty => kMissionScoreCta,
     };
     final onPressed = switch (data.displayMode) {
       DashboardMapPreviewMode.compare => onCompareTap ?? onTap,
       DashboardMapPreviewMode.savedSpots => onSavedSpotsTap ?? onTap,
       DashboardMapPreviewMode.activeReport => onTap,
+      DashboardMapPreviewMode.limited => onMarineTap,
       DashboardMapPreviewMode.empty => onMarineTap,
     };
     if (onPressed == null) return const SizedBox.shrink();
@@ -290,372 +435,9 @@ class DashboardV2MapCard extends StatelessWidget {
         DashboardMapPreviewMode.compare => Icons.compare_arrows,
         DashboardMapPreviewMode.savedSpots => Icons.bookmark_outline,
         DashboardMapPreviewMode.activeReport => Icons.map_outlined,
+        DashboardMapPreviewMode.limited => Icons.explore_outlined,
         DashboardMapPreviewMode.empty => Icons.explore_outlined,
       },
     );
   }
-
-  Widget _scaleBadge() {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(8, 4, 8, 4),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceDark.withValues(alpha: 0.78),
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: AppColors.borderSoft(alpha: 0.15)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 36,
-            height: 2,
-            decoration: BoxDecoration(
-              color: AppColors.accentTeal.withValues(alpha: 0.7),
-              borderRadius: BorderRadius.circular(1),
-            ),
-          ),
-          const SizedBox(width: 6),
-          Text(
-            kPremiumDashMapRealData,
-            style: AppTextStyles.caption.copyWith(fontSize: 10),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _overlayIcon(IconData icon) {
-    return Container(
-      width: 26,
-      height: 26,
-      decoration: BoxDecoration(
-        color: AppColors.surfaceDark.withValues(alpha: 0.82),
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: AppColors.borderSoft(alpha: 0.22)),
-      ),
-      child: Icon(icon, size: 13, color: AppColors.textSecondary),
-    );
-  }
-}
-
-class _DashboardMapPainter extends CustomPainter {
-  _DashboardMapPainter({
-    required this.markers,
-    required this.hasComparePair,
-    required this.hasData,
-    this.primaryCenter,
-  });
-
-  final List<DashboardMapMarker> markers;
-  final bool hasComparePair;
-  final bool hasData;
-  final Offset? primaryCenter;
-
-  static const _labelOffset = 14.0;
-  static const _overlapThreshold = 0.045;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    _drawOceanGradient(canvas, size);
-    _drawDepthContours(canvas, size);
-
-    if (hasData && primaryCenter != null) {
-      _drawSonarRings(
-        canvas,
-        size,
-        Offset(
-          size.width * primaryCenter!.dx,
-          size.height * primaryCenter!.dy,
-        ),
-      );
-    }
-
-    if (hasData) {
-      if (hasComparePair) {
-        final a = markers.where((m) => m.isCompareA).toList();
-        final b = markers.where((m) => m.isCompareB).toList();
-        if (a.isNotEmpty && b.isNotEmpty) {
-          canvas.drawLine(
-            Offset(
-              size.width * a.first.normalizedX,
-              size.height * a.first.normalizedY,
-            ),
-            Offset(
-              size.width * b.first.normalizedX,
-              size.height * b.first.normalizedY,
-            ),
-            Paint()
-              ..color = AppColors.accentTeal.withValues(alpha: 0.35)
-              ..strokeWidth = 1.2,
-          );
-        }
-      }
-
-      final placed = <Offset>[];
-      for (final m in markers) {
-        var center = Offset(
-          size.width * m.normalizedX,
-          size.height * m.normalizedY,
-        );
-        center = _resolveOverlap(center, placed, size);
-        placed.add(center);
-
-        final color = _markerColor(m);
-        if (m.score != null) {
-          _drawScoreBubble(
-            canvas,
-            center,
-            color,
-            m.score!,
-            large: m.isPrimary || m.isCompareA || m.isCompareB,
-          );
-        } else {
-          _drawGlowDot(canvas, center, color, large: m.isPrimary);
-        }
-
-        if (m.isCompareA || m.isCompareB) {
-          _drawMarkerLabel(canvas, center, m.isCompareA ? 'A' : 'B');
-        } else if (m.isFavorite && !m.isPrimary) {
-          _drawMarkerLabel(canvas, center, '★', small: true);
-        }
-      }
-    }
-  }
-
-  Offset _resolveOverlap(Offset center, List<Offset> placed, Size size) {
-    var resolved = center;
-    for (var pass = 0; pass < 4; pass++) {
-      for (final other in placed) {
-        final delta = resolved - other;
-        if (delta.distance < size.shortestSide * _overlapThreshold) {
-          resolved += Offset(10 * (pass + 1), -8 * (pass + 1));
-        }
-      }
-    }
-    return Offset(
-      resolved.dx.clamp(16, size.width - 16),
-      resolved.dy.clamp(16, size.height - 16),
-    );
-  }
-
-  Color _markerColor(DashboardMapMarker m) {
-    if (m.isCompareA) return AppColors.accentGreen;
-    if (m.isCompareB) return AppColors.accentAmber;
-    if (m.markerType == DashboardMapMarkerType.hotspot) {
-      return AppColors.borderCyan;
-    }
-    if (m.isFavorite) return AppColors.borderCyan;
-    if (m.isPrimary) return AppColors.accentTeal;
-    return AppColors.accentTeal.withValues(alpha: 0.85);
-  }
-
-  void _drawOceanGradient(Canvas canvas, Size size) {
-    canvas.drawRect(
-      Offset.zero & size,
-      Paint()
-        ..shader = RadialGradient(
-          center: const Alignment(-0.25, 0.15),
-          radius: 1.35,
-          colors: const [
-            Color(0xFF0C4568),
-            Color(0xFF072A40),
-            Color(0xFF041018),
-          ],
-        ).createShader(Offset.zero & size),
-    );
-    canvas.drawRect(
-      Offset.zero & size,
-      Paint()
-        ..shader = LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.borderCyan.withValues(alpha: 0.08),
-            Colors.transparent,
-            AppColors.accentTeal.withValues(alpha: 0.05),
-          ],
-        ).createShader(Offset.zero & size),
-    );
-  }
-
-  void _drawSonarRings(Canvas canvas, Size size, Offset center) {
-    for (var ring = 1; ring <= 3; ring++) {
-      canvas.drawCircle(
-        center,
-        size.shortestSide * 0.1 * ring,
-        Paint()
-          ..color =
-              AppColors.borderCyan.withValues(alpha: 0.04 + ring * 0.015)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 0.9,
-      );
-    }
-  }
-
-  void _drawDepthContours(Canvas canvas, Size size) {
-    for (var depth = 0; depth < 10; depth++) {
-      final stroke = depth.isEven ? 1.5 : 0.85;
-      final alpha = 0.04 + depth * 0.022;
-      final paint = Paint()
-        ..color = AppColors.borderCyan.withValues(alpha: alpha)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = stroke;
-
-      final path = Path();
-      final baseY = 0.12 + depth * 0.085;
-      path.moveTo(0, size.height * baseY);
-      for (var x = 0.0; x <= 1.01; x += 0.035) {
-        final wave =
-            math.sin(x * math.pi * (2.2 + depth * 0.12) + depth) * 0.04;
-        final curl =
-            math.cos(x * math.pi * 1.05 + depth * 0.45) * 0.02;
-        path.lineTo(
-          size.width * x,
-          size.height * (baseY + wave + curl + depth * 0.012),
-        );
-      }
-      canvas.drawPath(path, paint);
-    }
-
-    final channels = [
-      (0.48, 0.35, 0.58, 0.52),
-      (0.22, 0.45, 0.4, 0.58),
-      (0.72, 0.55, 0.82, 0.68),
-    ];
-    for (final c in channels) {
-      final accent = Path()
-        ..moveTo(0, size.height * c.$1)
-        ..quadraticBezierTo(
-          size.width * c.$2,
-          size.height * c.$3,
-          size.width,
-          size.height * c.$4,
-        );
-      canvas.drawPath(
-        accent,
-        Paint()
-          ..color = AppColors.accentTeal.withValues(alpha: 0.1)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1.4,
-      );
-    }
-  }
-
-  void _drawGlowDot(
-    Canvas canvas,
-    Offset center,
-    Color color, {
-    required bool large,
-  }) {
-    final radius = large ? 7.0 : 5.0;
-    canvas.drawCircle(
-      center,
-      radius + 6,
-      Paint()
-        ..color = color.withValues(alpha: 0.22)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10),
-    );
-    canvas.drawCircle(
-      center,
-      radius,
-      Paint()..color = const Color(0xFF071822).withValues(alpha: 0.94),
-    );
-    canvas.drawCircle(
-      center,
-      radius,
-      Paint()
-        ..color = color.withValues(alpha: 0.95)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = large ? 2.0 : 1.4,
-    );
-  }
-
-  void _drawScoreBubble(
-    Canvas canvas,
-    Offset center,
-    Color color,
-    int score, {
-    required bool large,
-  }) {
-    final radius = large ? 15.0 : 10.5;
-
-    if (large) {
-      for (var ring = 1; ring <= 2; ring++) {
-        canvas.drawCircle(
-          center,
-          radius + ring * 6,
-          Paint()
-            ..color = color.withValues(alpha: 0.14 / ring)
-            ..maskFilter = MaskFilter.blur(BlurStyle.normal, 10.0 * ring),
-        );
-      }
-    }
-
-    canvas.drawCircle(
-      center,
-      radius + (large ? 8 : 5),
-      Paint()
-        ..color = color.withValues(alpha: large ? 0.32 : 0.18)
-        ..maskFilter = MaskFilter.blur(BlurStyle.normal, large ? 12 : 7),
-    );
-
-    canvas.drawCircle(
-      center,
-      radius,
-      Paint()..color = const Color(0xFF071822).withValues(alpha: 0.94),
-    );
-    canvas.drawCircle(
-      center,
-      radius,
-      Paint()
-        ..color = color.withValues(alpha: 0.9)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = large ? 2.2 : 1.5,
-    );
-
-    if (score > 0) {
-      final tp = TextPainter(
-        text: TextSpan(
-          text: '$score',
-          style: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: large ? 12 : 9,
-            fontWeight: FontWeight.w800,
-          ),
-        ),
-        textDirection: TextDirection.ltr,
-      )..layout();
-      tp.paint(canvas, center - Offset(tp.width / 2, tp.height / 2));
-    }
-  }
-
-  void _drawMarkerLabel(
-    Canvas canvas,
-    Offset center,
-    String text, {
-    bool small = false,
-  }) {
-    final tp = TextPainter(
-      text: TextSpan(
-        text: text,
-        style: TextStyle(
-          color: AppColors.textPrimary,
-          fontSize: small ? 8 : 10,
-          fontWeight: FontWeight.w700,
-        ),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    tp.paint(
-      canvas,
-      center + Offset(_labelOffset, -_labelOffset - tp.height),
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _DashboardMapPainter oldDelegate) =>
-      oldDelegate.markers != markers ||
-      oldDelegate.hasComparePair != hasComparePair ||
-      oldDelegate.hasData != hasData ||
-      oldDelegate.primaryCenter != primaryCenter;
 }
