@@ -1,8 +1,24 @@
-# MeraSonar — Manual QA Matrix (RC1 Build9.7.1)
+# MeraSonar — Manual QA Matrix (RC1 Build9.7.2)
 
-**RC1 Final date:** 2026-07-05 · Build9.7.1 Dashboard Map Preview Runtime Cluster Fix
+**RC1 Final date:** 2026-07-05 · Build9.7.2 Coordinate Picker Selected Marker Fix
 
 **Platform:** W = Windows desktop · AP = Android fiziksel · AE = Android emülatör
+
+## RC1 Build9.7.2 — Coordinate Picker Selected Marker Fix
+
+**Date:** 2026-07-05 · **Tag:** `v1.0.0-rc1-build9.7.2` · **Commit:** `576875f` · **CI run:** [28747268680](https://github.com/Miracle4AE/merasonar/actions/runs/28747268680)
+
+| Scenario | W | Status | Notes |
+|----------|---|--------|-------|
+| Picker opens | ✓ | **Passed** | `CoordinatePickerMapSheet` widget test |
+| No initial coordinate → no marker | ✓ | **Passed** | Use button disabled |
+| Initial coordinate → marker visible | ✓ | **Passed** | Label uses 6 decimal precision |
+| Tap/select state | ✓ | **Passed** | Test mode tap path exercises same selected state |
+| Clear selection | ✓ | **Passed** | Marker removed, use button disabled |
+| Use selected coordinate | ✓ | **Passed** | Returns selected `LatLng`; screen writes inputs with 6 decimals |
+| Screenshot | ✓ | **Passed** | `coordinate-picker-selected-marker.png` |
+| CI QA gates | ✓ | **Passed** | `pytest` 258 · `flutter analyze` 0 · `flutter test` 471 |
+| Windows/Android release artifacts | ✓ | **Passed** | Build + artifact sanity + upload |
 
 ## RC1 Build9.7.1 — Dashboard Map Preview Runtime Cluster Fix
 

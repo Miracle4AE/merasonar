@@ -1,17 +1,17 @@
 # MeraSonar v1.0.0-rc1 — RC1 Distribution Package
 
 **Sürüm:** v1.0.0-rc1 (pubspec `1.0.0+1`)  
-**Build / paket tarihi:** 2026-07-05 (RC1 Build9.7.1 — Dashboard Map Preview Runtime Cluster Fix)  
-**Gate kararı:** **GO** (Build9.7.1 CI QA + artifact sanity validated)
+**Build / paket tarihi:** 2026-07-05 (RC1 Build9.7.2 — Coordinate Picker Selected Marker Fix)  
+**Gate kararı:** **GO** (Build9.7.2 CI QA + artifact sanity validated)
 
 ## Final RC1 Build Tag
 
 | Öğe | Değer |
 |-----|--------|
-| Final tag | `v1.0.0-rc1-build9.7.1` (CI green · dağıtım) |
-| Commit | `6f144f1` |
-| GitHub Release Build | **Passed** — [run 28745454536](https://github.com/Miracle4AE/merasonar/actions/runs/28745454536) |
-| Not | Dashboard Map Preview runtime cluster fix; `build9.7` önceki redesign tag’i olarak korunuyor |
+| Final tag | `v1.0.0-rc1-build9.7.2` (CI green · dağıtım) |
+| Commit | `576875f` |
+| GitHub Release Build | **Passed** — [run 28747268680](https://github.com/Miracle4AE/merasonar/actions/runs/28747268680) |
+| Not | Coordinate picker selected marker fix; `build9.7.1` dashboard runtime cluster fix olarak korunuyor |
 | CI artifacts | APK + Windows folder + zip uploaded |
 | Lokal Rebuild #9.6 hashleri | **Preserved** — CI build9.7 artifactleri dağıtım kaynağı |
 | Dağıtım | CI artifact veya lokal `MeraSonar-windows-release.zip` / `app-release.apk` |
@@ -24,8 +24,8 @@
 |-----|--------|
 | Repository | https://github.com/Miracle4AE/merasonar |
 | Branch | `main` |
-| Tag | `v1.0.0-rc1-build9.7.1` @ `6f144f1` (final CI green) · `v1.0.0-rc1-build9.7` @ `aaaf0f3` |
-| Release Build CI | **Passed** — [28745454536](https://github.com/Miracle4AE/merasonar/actions/runs/28745454536) (build9.7.1) |
+| Tag | `v1.0.0-rc1-build9.7.2` @ `576875f` (final CI green) · `v1.0.0-rc1-build9.7.1` @ `6f144f1` |
+| Release Build CI | **Passed** — [28747268680](https://github.com/Miracle4AE/merasonar/actions/runs/28747268680) (build9.7.2) |
 | CI artifacts | `MeraSonar-android-apk`, `MeraSonar-windows-release`, `MeraSonar-windows-release-zip` |
 
 **CI artifact indirme:** GitHub Actions → Release Build run → Artifacts bölümü.
@@ -46,23 +46,23 @@
 | `check_openai_config.py --live` | OK — `LIVE_SOURCE: ai` |
 | `pytest` | 258 passed |
 | `flutter analyze` | 0 issue |
-| `flutter test` | 465 passed |
+| `flutter test` | 471 passed |
 | `release_verify.bat qa` | OK |
 | `check_release_artifacts.py` | OK |
-| Manual QA | Build9.7.1 runtime cluster fixture export — bkz. `docs/MANUAL_QA_MATRIX.md` |
+| Manual QA | Build9.7.2 coordinate picker selected marker export — bkz. `docs/MANUAL_QA_MATRIX.md` |
 
 ---
 
 ## Dağıtım artifact’leri
 
-### Windows (CI build9.7.1 — dağıtım)
+### Windows (CI build9.7.2 — dağıtım)
 
 | Öğe | Değer |
 |-----|--------|
-| CI run | [28745454536](https://github.com/Miracle4AE/merasonar/actions/runs/28745454536) |
-| Zip SHA256 | `0a19d10d846ecdb0f1a8f1a96a9f6830daf04088d48f8284580e14dbbcef4d55` |
-| Exe SHA256 | `d881455332db6483b2877eeed48c27a934b65957ff412fe82a920ede7b15132c` |
-| `data/app.so` SHA256 | `22debc742094797d9c9cea271f957b45afcff90244c97a33b77daa03e80865c8` |
+| CI run | [28747268680](https://github.com/Miracle4AE/merasonar/actions/runs/28747268680) |
+| Zip SHA256 | `fd832991db802060f78958c103e27a18660531b375fe64c759ca2097ce8c0bcc` |
+| Exe SHA256 | `c50aebee9933c994a82e02085edf695f2dd6d8c8ef5fb7668cc98773ef8f7ea3` |
+| `data/app.so` SHA256 | `e225e22a4e0ab6dc10aa597c4b53c78d96426ae60453e024c6daddafa866ca69` |
 
 ### Windows (lokal Rebuild #9.6)
 
@@ -72,11 +72,11 @@
 | Exe SHA256 | `385bc0a92a1e6a1e8c83bb22cd0f6c9d43bb6424b0f4358043d9febc2b3e2338` |
 | `data/app.so` SHA256 | `b44d56b747485a37d331c7c5f29fcc62e5de2e0ee28abdc88ba1a6a6bef8d473` |
 
-### Android (CI build9.7.1 — dağıtım)
+### Android (CI build9.7.2 — dağıtım)
 
 | Öğe | Değer |
 |-----|--------|
-| SHA256 | `d964ba8840b337b7db8c2d6cd4998cc224987a98e6ab81e980ae9fd0326b49df` |
+| SHA256 | `73ff2330e53cc38aa0029d9c0e874c8908127d2bc7d730d1baadaf4f6c3b4b00` |
 
 ### Android (lokal Rebuild #9.6)
 

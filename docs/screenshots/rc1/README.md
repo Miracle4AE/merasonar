@@ -1,6 +1,6 @@
-# MeraSonar RC1 — Visual QA Screenshot Pack (RC1 Build9.7.1)
+# MeraSonar RC1 — Visual QA Screenshot Pack (RC1 Build9.7.2)
 
-**Capture date:** 2026-07-05 · **Build:** RC1 Build9.7.1 (Dashboard Map Preview Runtime Cluster Fix)
+**Capture date:** 2026-07-05 · **Build:** RC1 Build9.7.2 (Coordinate Picker Selected Marker Fix)
 
 ## Dashboard map preview (RC1 Build9.7.1)
 
