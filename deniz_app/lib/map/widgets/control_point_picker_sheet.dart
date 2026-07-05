@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 
 import '../../api_service.dart';
+import '../../domain/calibration_geometry.dart';
 import '../../l10n/app_strings_tr.dart';
 import '../../utils/geo_control_point_layout.dart';
 import '../../utils/navionics_coordinate_parser.dart';
@@ -51,6 +52,7 @@ class _ControlPointPickerSheetState extends State<ControlPointPickerSheet> {
   final List<_PointEntry> _entries = [];
   List<ImageControlPoint> _resolvedPoints = const [];
   String? _layoutSpanError;
+  CalibrationGeometryAssessment? _geometryAssessment;
   int? _activePickIndex;
 
   int get _validGeoCount {
@@ -187,6 +189,7 @@ class _ControlPointPickerSheetState extends State<ControlPointPickerSheet> {
       );
       if (resolved.length >= 3) {
         _resolvedPoints = resolved;
+        _geometryAssessment = assessImageControlPoints(resolved);
         return;
       }
     } else {
@@ -194,6 +197,7 @@ class _ControlPointPickerSheetState extends State<ControlPointPickerSheet> {
     }
 
     _resolvedPoints = const [];
+    _geometryAssessment = null;
   }
 
   void _beginPickOnChart(int index) {
@@ -299,6 +303,7 @@ class _ControlPointPickerSheetState extends State<ControlPointPickerSheet> {
       }
       _resolvedPoints = const [];
       _layoutSpanError = null;
+      _geometryAssessment = null;
     });
   }
 
@@ -309,6 +314,9 @@ class _ControlPointPickerSheetState extends State<ControlPointPickerSheet> {
     final hasSize = rawWidth > 1 && rawHeight > 1;
     final n = _validGeoCount;
     final ready = _resolvedPoints.length >= 3;
+    final geometryInvalid = _geometryAssessment?.isInvalid == true;
+    final geometryLow = _geometryAssessment?.isLowConfidence == true;
+    final canApply = ready && !geometryInvalid;
 
     return SafeArea(
       child: Container(
@@ -348,25 +356,46 @@ class _ControlPointPickerSheetState extends State<ControlPointPickerSheet> {
                         vertical: 10,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1B5E20).withValues(alpha: 0.35),
+                        color: geometryInvalid
+                            ? const Color(0x44B71C1C)
+                            : geometryLow
+                                ? const Color(0x33E65100)
+                                : const Color(0xFF1B5E20).withValues(alpha: 0.35),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
-                          color: const Color(0xFF66BB6A),
+                          color: geometryInvalid
+                              ? const Color(0xFFEF5350)
+                              : geometryLow
+                                  ? const Color(0xFFFFCC80)
+                                  : const Color(0xFF66BB6A),
                           width: 1,
                         ),
                       ),
-                      child: const Row(
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Icon(
-                            Icons.check_circle,
-                            color: Color(0xFF81C784),
+                            geometryInvalid
+                                ? Icons.error_outline
+                                : geometryLow
+                                    ? Icons.warning_amber_rounded
+                                    : Icons.check_circle,
+                            color: geometryInvalid
+                                ? const Color(0xFFFFCDD2)
+                                : geometryLow
+                                    ? Colors.amber.shade200
+                                    : const Color(0xFF81C784),
                             size: 22,
                           ),
-                          SizedBox(width: 10),
+                          const SizedBox(width: 10),
                           Expanded(
                             child: Text(
-                              kCalibReadyMessage,
-                              style: TextStyle(
+                              geometryInvalid
+                                  ? kCalibReadyInvalid
+                                  : geometryLow
+                                      ? kCalibReadyLowConfidence
+                                      : kCalibReadyMessage,
+                              style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w600,
                                 fontSize: 15,
@@ -376,6 +405,29 @@ class _ControlPointPickerSheetState extends State<ControlPointPickerSheet> {
                         ],
                       ),
                     ),
+                    if (geometryLow) ...[
+                      const SizedBox(height: 8),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF102436),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.white12),
+                        ),
+                        child: const Text(
+                          kCalibLowConfidenceHelper,
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 12,
+                            height: 1.35,
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                   const SizedBox(height: 8),
                   Container(
@@ -532,7 +584,7 @@ class _ControlPointPickerSheetState extends State<ControlPointPickerSheet> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: FilledButton(
-                    onPressed: ready
+                    onPressed: canApply
                         ? () => Navigator.pop(context, _resolvedPoints)
                         : null,
                     child: const Text(kCalibRerunAnalysisCta),

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../api_service.dart';
+import 'calibration_geometry.dart';
 
 /// Sunucu kalibrasyon güven katmanı — tek kaynaklı UI politikası.
 enum CalibrationReliability {
@@ -21,6 +22,8 @@ class GeoVisualizationState {
     this.warningMessage,
     this.reasonCode,
     this.controlPointSpreadM,
+    this.clientGeometry,
+    this.markerAlignment,
   });
 
   /// Sunucu `coordinate_mode` (kanonik).
@@ -49,14 +52,58 @@ class GeoVisualizationState {
 
   /// Seyir için “yüksek güven” (UI yumuşatma / canlı skor ipuçları).
   bool get isReliableForNavigation =>
-      reliability == CalibrationReliability.excellent ||
-      reliability == CalibrationReliability.good;
+      (reliability == CalibrationReliability.excellent ||
+          reliability == CalibrationReliability.good) &&
+      confidenceLevel == CalibrationConfidenceLevel.valid;
+
+  /// Birleşik kalibrasyon güven bandı (sunucu + istemci geometri + hotspot hizası).
+  CalibrationConfidenceLevel get confidenceLevel {
+    if (coordinateMode == kCoordinateModeUnknown ||
+        coordinateMode == kCoordinateModeImageSpace) {
+      return CalibrationConfidenceLevel.uncalibrated;
+    }
+    if (coordinateMode == kCoordinateModeBoatAnchorEstimated) {
+      return CalibrationConfidenceLevel.fallbackBoatEstimated;
+    }
+    if (clientGeometry?.isInvalid == true) {
+      return CalibrationConfidenceLevel.invalid;
+    }
+    if (clientGeometry?.isLowConfidence == true ||
+        markerAlignment?.isStringLike == true ||
+        reliability == CalibrationReliability.approximate) {
+      return CalibrationConfidenceLevel.lowConfidence;
+    }
+    if (reliability == CalibrationReliability.unsafe) {
+      return CalibrationConfidenceLevel.invalid;
+    }
+    if (reliability == CalibrationReliability.excellent ||
+        reliability == CalibrationReliability.good) {
+      return CalibrationConfidenceLevel.valid;
+    }
+    return CalibrationConfidenceLevel.lowConfidence;
+  }
+
+  bool get showLowConfidenceRibbon =>
+      confidenceLevel == CalibrationConfidenceLevel.lowConfidence &&
+      canRenderWorldMapHotspots;
+
+  bool get showInvalidCalibrationRibbon =>
+      confidenceLevel == CalibrationConfidenceLevel.invalid &&
+      coordinateMode == kCoordinateModeGeoReferenced;
+
+  bool get showValidCalibrationRibbon =>
+      confidenceLevel == CalibrationConfidenceLevel.valid &&
+      canRenderWorldMapHotspots;
+
+  bool get showMarkerAlignmentWarning => markerAlignment?.isStringLike == true;
 
   final double calibrationQuality;
   final double transformConfidence;
   final String? warningMessage;
   final String? reasonCode;
   final double? controlPointSpreadM;
+  final CalibrationGeometryAssessment? clientGeometry;
+  final HotspotAlignmentAssessment? markerAlignment;
 
   static CalibrationReliability parseReliability(String? raw) {
     switch ((raw ?? '').trim().toLowerCase()) {
@@ -89,9 +136,39 @@ class GeoVisualizationState {
     return CalibrationReliability.excellent;
   }
 
+  GeoVisualizationState withClientValidation({
+    CalibrationGeometryAssessment? geometry,
+    HotspotAlignmentAssessment? markerAlignment,
+  }) {
+    var nextReliability = reliability;
+    if (geometry?.isInvalid == true) {
+      nextReliability = CalibrationReliability.unsafe;
+    } else if (geometry?.isLowConfidence == true ||
+        markerAlignment?.isStringLike == true) {
+      if (nextReliability == CalibrationReliability.excellent ||
+          nextReliability == CalibrationReliability.good) {
+        nextReliability = CalibrationReliability.approximate;
+      }
+    }
+
+    return GeoVisualizationState(
+      coordinateMode: coordinateMode,
+      reliability: nextReliability,
+      calibrationQuality: calibrationQuality,
+      transformConfidence: transformConfidence,
+      warningMessage: warningMessage,
+      reasonCode: reasonCode ?? geometry?.reasonCode,
+      controlPointSpreadM: controlPointSpreadM,
+      clientGeometry: geometry ?? clientGeometry,
+      markerAlignment: markerAlignment ?? this.markerAlignment,
+    );
+  }
+
   factory GeoVisualizationState.fromFishingZone(
     FishingZoneResponse response, {
     String? fallbackCoordinateModeHint,
+    CalibrationGeometryAssessment? clientGeometry,
+    HotspotAlignmentAssessment? markerAlignment,
   }) {
     final hinted = FishingZoneResponse.withEnsuredCoordinateMode(
       response,
@@ -147,7 +224,7 @@ class GeoVisualizationState {
       }
     }
 
-    return GeoVisualizationState(
+    final base = GeoVisualizationState(
       coordinateMode: cm,
       reliability: reliability,
       calibrationQuality: q,
@@ -155,7 +232,16 @@ class GeoVisualizationState {
       warningMessage: _resolveWarning(hinted),
       reasonCode: hinted.diagnostics.calibrationReliabilityReason,
       controlPointSpreadM: hinted.diagnostics.controlPointSpreadM,
+      clientGeometry: clientGeometry,
+      markerAlignment: markerAlignment,
     );
+    if (clientGeometry != null || markerAlignment != null) {
+      return base.withClientValidation(
+        geometry: clientGeometry,
+        markerAlignment: markerAlignment,
+      );
+    }
+    return base;
   }
 
   static String? _resolveWarning(FishingZoneResponse hinted) {

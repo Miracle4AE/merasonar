@@ -1,8 +1,49 @@
 # MeraSonar — Manual QA Matrix (RC1 Final Rebuild #9)
 
-**RC1 Final date:** 2026-07-05 · Premium Settings Upgrade + binary rebuild
+**RC1 Final date:** 2026-07-05 · Build9.6 Map Calibration Confidence Fix
 
 **Platform:** W = Windows desktop · AP = Android fiziksel · AE = Android emülatör
+
+## RC1 Build9.6 — Map Calibration Confidence Manual QA
+
+**Date:** 2026-07-05 · **Tag:** `v1.0.0-rc1-build9.6` (local rebuild + CI pending)
+
+| Scenario | W | Status | Notes |
+|----------|---|--------|-------|
+| Kullanıcı ince üçgen koordinatları → lowConfidence | ✓ | **Passed** | `37°23.755'N` … `37°26.769'N` · spread ~0.14 · geometry unit + ribbon export |
+| Yeşil iddialı banner yok | ✓ | **Passed** | Eski *gerçek konuma oturmuş* metni kaldırıldı |
+| Amber düşük güven şeridi | ✓ | **Passed** | `map-calibration-low-confidence-warning.png` |
+| Marker string alignment warning | ✓ | **Passed** | 8+ hotspot tek meridyende → ribbon metnine ek uyarı |
+| Picker helper / invalid guard | ✓ | **Passed** | `map-calibration-picker-thin-warning.png` · invalid → analiz kapalı |
+| Geniş üçgen valid banner (aynı foto) | — | **Pending** | Referans harita dosyası repoda yok; sentetik valid panel doğrulandı |
+| Geniş üçgen valid banner (sentetik) | ✓ | **Passed** | `map-calibration-valid-wide-triangle.png` |
+| Marker tap / hotspot detail regression | ✓ | **Passed** | `flutter test` 450 · mevcut map widget testleri |
+| Full rebuild + artifact sanity | ✓ | **Passed** | `release_verify.bat all` (subst `M:`) |
+
+**Screenshots:** `docs/screenshots/rc1/map-calibration-*.png` · **Script:** `scripts/rc_build96_calibration_qa.ps1`
+
+## RC1 Build9.5 Device Smoke QA
+
+**Date:** 2026-07-05 · **Tag:** `v1.0.0-rc1-build9.5` · **CI run:** [28735788133](https://github.com/Miracle4AE/merasonar/actions/runs/28735788133)
+
+| Scenario | W | AP | AE | Status | Notes |
+|----------|---|---|---|--------|-------|
+| CI artifact indir + hash doğrulama | ✓ | ✓ | — | **Passed** | APK `6C087D…ADFBD3` · zip `994B09…C239E` |
+| Uygulama crash olmadan açılıyor | ✓ | — | ✓ | **Passed** | Process alive after smoke |
+| Dashboard yükleniyor | ✓ | — | ✓ | **Passed** | `win-dashboard.png` · `android-02-dashboard.png` |
+| Ayarlar / sunucu IP-port görünür | ✓ | — | ◐ | **Partial** | W: header `Bağlı: localhost:8000`; Premium Settings runtime shot CI exe'de otomasyon drift |
+| Bağlantı testi / backend fallback | ✓ | — | ✓ | **Passed** | W: live marine data; AE offline modal dismiss OK; AE `Bağlı: 10.0.2.2:8000` |
+| Harita ekranı | ✓ | — | ◐ | **Partial** | W: live API + markers; AE: Canlı Alan live score, map nav otomasyonu tamamlanmadı |
+| Hotspot / strip detay | ✓ | — | ◐ | **Partial** | W: marker etiketleri + Yakındaki Meralar strip; bottom sheet shot eksik |
+| Captain Atlas akışı (crash yok) | ✓ | — | ✓ | **Passed** | W: dashboard widget + map dock; AE: Koordinat ekranı açılıyor |
+| GPS izin akışı | — | — | ✓ | **Passed** | Sistem diyaloğu crash yapmıyor; `pm grant` sonrası live GPS |
+| Temiz Windows cihaz | — | — | — | **Not run** | Geliştirme makinesi (Win11 Pro) |
+| Android fiziksel cihaz | — | ☐ | — | **Pending** | `sdk_gphone64_x86_64` emülatör kullanıldı |
+| Overflow / crash | ✓ | — | ✓ | **Passed** | Gözle görülür taşma yok |
+
+**Screenshots:** `docs/screenshots/rc1/build95-smoke/`
+
+**Gate:** Windows CI smoke **Passed** (dev machine). Android **Partial** — fiziksel cihaz smoke pending.
 
 ## RC1 Final Rebuild #9 — Premium Settings Upgrade
 
@@ -68,4 +109,4 @@
 
 ---
 
-**Son güncelleme:** RC1 Final Rebuild #9 · `docs/releases/v1.0.0-rc1-artifacts.md`
+**Son güncelleme:** RC1 Build9.6 Map Calibration Confidence · `docs/releases/v1.0.0-rc1-artifacts.md`

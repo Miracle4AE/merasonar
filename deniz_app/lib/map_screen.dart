@@ -17,6 +17,7 @@ import 'api_service.dart';
 import 'domain/app_settings.dart';
 import 'services/app_settings_controller.dart';
 import 'config/app_config.dart';
+import 'domain/calibration_geometry.dart';
 import 'domain/geo_visualization_state.dart';
 import 'domain/world_map_empty_diagnostics_copy.dart';
 import 'domain/world_map_hotspot_layout.dart';
@@ -806,7 +807,29 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
       fallbackCoordinateModeHint: _controlPoints.length >= 3
           ? kCoordinateModeGeoReferenced
           : null,
+      clientGeometry: _controlPoints.length >= 3
+          ? assessImageControlPoints(_controlPoints)
+          : null,
+      markerAlignment: assessHotspotGeoAlignment(_hotspots),
     );
+    if (kDebugMode) {
+      final geom = _geoViz.clientGeometry;
+      final align = _geoViz.markerAlignment;
+      if (geom != null && !geom.isValid) {
+        debugPrint(
+          'Map calibration geometry: ${geom.level.name} '
+          'area=${geom.triangleAreaM2?.toStringAsFixed(0)}m² '
+          'spread=${geom.crossTrackSpreadM?.toStringAsFixed(0)}m '
+          'reason=${geom.reasonCode}',
+        );
+      }
+      if (align?.isStringLike == true) {
+        debugPrint(
+          'Map hotspot alignment warning: cross=${align!.crossTrackSpreadM?.toStringAsFixed(0)}m '
+          'along=${align.alongTrackSpreadM?.toStringAsFixed(0)}m n=${align.sampleCount}',
+        );
+      }
+    }
     _userWarningTrFromServer = hinted.userWarningTr;
     if (_boatState != null) {
       _boatGpsSmoother.seedFromBoatState(_boatState!);

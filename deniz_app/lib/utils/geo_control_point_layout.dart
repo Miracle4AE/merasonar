@@ -1,6 +1,8 @@
 import 'dart:math' as math;
 
 import '../api_service.dart';
+import '../domain/calibration_geometry.dart';
+import '../l10n/app_strings_tr.dart';
 
 /// Kalibrasyonda en fazla kaç referans noktası (köşeler + ek referanslar).
 const int kMaxCalibrationControlPoints = 8;
@@ -69,6 +71,17 @@ List<ImageControlPoint> layoutControlPointsFromGeo({
     );
   }
   return out;
+}
+
+/// İlk üç geo koordinat için geometri uyarısı (picker / layout).
+String? layoutControlPointsGeometryWarning(List<LatLon> geoPoints) {
+  if (geoPoints.length < 3) return null;
+  final assessment = assessGeoTriangle(geoPoints);
+  return switch (assessment.level) {
+    CalibrationGeometryLevel.invalid => kCalibReadyInvalid,
+    CalibrationGeometryLevel.lowConfidence => kCalibReadyLowConfidence,
+    CalibrationGeometryLevel.valid => null,
+  };
 }
 
 /// İki köşe koordinatı piksel dönüşümü için yeterince ayrık mı?

@@ -360,7 +360,23 @@ const String kMapTabPhotoAnalysis = 'Fotoğraf analizi';
 const String kMapNearestMeresPanelTitle = 'En yakın meralar';
 const String kMapChartPreviewLabel = 'Kaynak grafik';
 const String kMapModeBannerCalibrated =
-    'Kalibre dünya haritası aktif — meralar gerçek konuma oturmuş kabul edilir.';
+    'Kalibre harita aktif — kontrol noktalarıyla eşleştirildi.';
+const String kMapModeBannerLowConfidence =
+    'Kalibrasyon düşük güvenilirlikte — kontrol noktaları dar bir hat üzerinde görünüyor.';
+const String kMapModeBannerInvalidCalibration =
+    'Kalibrasyon geçersiz — üç nokta sağlıklı bir alan oluşturmuyor.';
+const String kMapModeBannerUncalibrated =
+    'Referanssız harita — sonuçlar tahminidir.';
+const String kMapModeBannerMarkerAlignment =
+    'Hotspotlar tek hatta yığılmış görünüyor. Kalibrasyon noktalarını kontrol edin.';
+const String kMapModeBannerBoatAnchorFallback =
+    'Yaklaşık tekne referansı — kontrol noktasıyla doğrulanmadı.';
+const String kCalibLowConfidenceHelper =
+    'Sağlıklı kalibrasyon için üç noktayı aynı kıyı hattı üzerinde seçmeyin. '
+    'Fotoğrafta mümkün olduğunca geniş üçgen oluşturacak noktalar seçin '
+    '(ör. üst-sol, üst-sağ ve alt-orta).';
+const String kCalibReadyLowConfidence = 'Kalibrasyon tamam — düşük güvenilirlik';
+const String kCalibReadyInvalid = 'Kalibrasyon geçersiz — noktaları düzeltin';
 const String kMapTrustHigh = 'yüksek';
 const String kMapTrustMedium = 'orta';
 const String kMapTrustLow = 'düşük';

@@ -1,6 +1,19 @@
-# MeraSonar RC1 — Visual QA Screenshot Pack (RC1 Final Rebuild #9)
+# MeraSonar RC1 — Visual QA Screenshot Pack (RC1 Build9.6)
 
-**Capture date:** 2026-07-05 · **Build:** RC1 Final Rebuild #9 (Premium Settings Upgrade)
+**Capture date:** 2026-07-05 · **Build:** RC1 Build9.6 (Map Calibration Confidence Fix)
+
+## Map calibration confidence (RC1 Build9.6)
+
+| File | Status | Platform | Build | Notes |
+|------|--------|----------|-------|-------|
+| `map-calibration-low-confidence-warning.png` | **Passed** | Widget export | RC1 Build9.6 | Kullanıcı ince üçgen koordinatları · amber ribbon + marker alignment |
+| `map-calibration-picker-thin-warning.png` | **Passed** | Widget export | RC1 Build9.6 | Picker helper — ince üçgen uyarısı |
+| `map-calibration-valid-wide-triangle.png` | **Passed** | Widget export | RC1 Build9.6 | Sentetik geniş üçgen · yeşil valid banner (aynı referans foto pending) |
+
+**Capture command:**
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\rc_build96_calibration_qa.ps1
+```
 
 ## Premium Settings (RC1 Rebuild #9)
 

@@ -34,11 +34,11 @@ List<ImageControlPoint> _samplePoints(int n) {
 
   const refs = [
 
-    (lat: 36.02, lon: 29.00, px: 0.0, py: 0.0),
+    (lat: 36.04, lon: 29.00, px: 0.0, py: 0.0),
 
-    (lat: 36.00, lon: 29.02, px: 390.0, py: 290.0),
+    (lat: 36.00, lon: 29.05, px: 390.0, py: 290.0),
 
-    (lat: 36.01, lon: 29.01, px: 195.0, py: 145.0),
+    (lat: 36.04, lon: 29.05, px: 390.0, py: 0.0),
 
   ];
 

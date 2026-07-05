@@ -1,20 +1,19 @@
 # MeraSonar v1.0.0-rc1 — RC1 Distribution Package
 
 **Sürüm:** v1.0.0-rc1 (pubspec `1.0.0+1`)  
-**Build / paket tarihi:** 2026-07-05 (RC1 Final Rebuild #9 — Premium Settings Upgrade)  
-**Gate kararı:** **GO** (Rebuild #9 QA + artifact sanity validated)
-
-**Ops note (2026-07-05):** Script-only cleanup — Flutter auto-detection (`FLUTTER_BIN` / PATH / puro), `prepare_windows_build_drive.bat`, `docs/BUILD_WINDOWS.md`. **No app binary changes; Rebuild #9 artifacts remain current.**
+**Build / paket tarihi:** 2026-07-05 (RC1 Build9.6 — Map Calibration Confidence Fix)  
+**Gate kararı:** **GO** (Build9.6 QA + artifact sanity validated)
 
 ## Final RC1 Build Tag
 
 | Öğe | Değer |
 |-----|--------|
-| Final tag | `v1.0.0-rc1-build9.5` |
-| Commit | `f9a5e2a` |
-| GitHub Release Build | **Passed** — [run 28735788133](https://github.com/Miracle4AE/merasonar/actions/runs/28735788133) |
+| Final tag | `v1.0.0-rc1-build9.6` |
+| Commit | Pending push |
+| GitHub Release Build | Pending — tag push sonrası güncellenecek |
+| Prior CI green | [run 28735788133](https://github.com/Miracle4AE/merasonar/actions/runs/28735788133) (build9.5) |
 | CI artifacts | APK + Windows folder + zip uploaded |
-| Lokal Rebuild #9 hashleri | Korunuyor (yeni lokal rebuild yok) |
+| Lokal Rebuild #9.6 hashleri | **Current** — aşağıdaki tablolar |
 | Dağıtım | CI artifact veya lokal `MeraSonar-windows-release.zip` / `app-release.apk` |
 
 ---
@@ -25,8 +24,8 @@
 |-----|--------|
 | Repository | https://github.com/Miracle4AE/merasonar |
 | Branch | `main` |
-| Tag | `v1.0.0-rc1-build9.5` @ `f9a5e2a` (final CI green) · `v1.0.0-rc1` @ `8fc4e99` (legacy) |
-| Release Build CI | **Passed** — [28735788133](https://github.com/Miracle4AE/merasonar/actions/runs/28735788133) (build9.5) |
+| Tag | `v1.0.0-rc1-build9.6` (pending) · `v1.0.0-rc1-build9.5` @ `f9a5e2a` · `v1.0.0-rc1` @ `8fc4e99` (legacy) |
+| Release Build CI | Pending build9.6 · prior [28735788133](https://github.com/Miracle4AE/merasonar/actions/runs/28735788133) (build9.5) |
 | CI artifacts | `MeraSonar-android-apk`, `MeraSonar-windows-release`, `MeraSonar-windows-release-zip` |
 
 **CI artifact indirme:** GitHub Actions → Release Build run → Artifacts bölümü.
@@ -47,7 +46,7 @@
 | `check_openai_config.py --live` | OK — `LIVE_SOURCE: ai` |
 | `pytest` | 258 passed |
 | `flutter analyze` | 0 issue |
-| `flutter test` | 436 passed |
+| `flutter test` | 450 passed |
 | `release_verify.bat qa` | OK |
 | `check_release_artifacts.py` | OK |
 | Manual QA | Rebuild #9 matrix — bkz. `docs/MANUAL_QA_MATRIX.md` |
@@ -63,18 +62,18 @@
 | Release klasörü | `deniz_app/build/windows/x64/runner/Release/` |
 | Çalıştırılabilir | `MeraSonar.exe` |
 | Zip paketi | `deniz_app/MeraSonar-windows-release.zip` |
-| Zip SHA256 | `39d0a3389406429cc156364dd128643954d870b5e8c5c91cb0b052e1737c887c` |
+| Zip SHA256 | `a9701c25abd3cc0d69145d6f608e6080430471d92b40269ff841ce46853975ef` |
 | Exe SHA256 | `385bc0a92a1e6a1e8c83bb22cd0f6c9d43bb6424b0f4358043d9febc2b3e2338` |
-| `data/app.so` SHA256 | `4d5ce6819c3b554c3603019d04d309c7029678f8e333192c61629556b372e09c` |
+| `data/app.so` SHA256 | `b44d56b747485a37d331c7c5f29fcc62e5de2e0ee28abdc88ba1a6a6bef8d473` |
 
-**Zip hash notu:** RC1 Final Rebuild #9 — Premium Settings upgrade in `app.so`.
+**Zip hash notu:** RC1 Build9.6 — Map Calibration Confidence Fix in `app.so`.
 
 ### Android
 
 | Öğe | Yol |
 |-----|-----|
 | APK | `deniz_app/build/app/outputs/flutter-apk/app-release.apk` |
-| SHA256 | `b22b6d7b8c6a1d85cf0f5230e0a2626cd282cf0dcaa6c1164ba958b4d6f1d39c` |
+| SHA256 | `bf0ce1d6c418b6dd0e2b0e8f850a011eb664bff1fbf186cbf09dd1ae599b6f58` |
 | İmzalama | Flutter debug/release keystore (Play upload key değil) |
 
 ---
