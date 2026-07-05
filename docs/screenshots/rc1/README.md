@@ -16,6 +16,12 @@ flutter test test/widget/dashboard_map_preview_redesign_test.dart --dart-define=
 
 **Runtime QA note:** Canlı backend + gerçek fishing zone runtime QA önerilir. `PremiumMapPreviewCard` mission panel ayrı turda dashboard v2 painter ile hizalanabilir.
 
+## Coordinate picker (RC1 Build9.7.2)
+
+| File | Status | Platform | Build | Notes |
+|------|--------|----------|-------|-------|
+| `coordinate-picker-selected-marker.png` | **Passed** | Widget export | RC1 Build9.7.2 | Haritadan koordinat seç modalı; seçili nokta marker/label; use button enabled |
+
 ## Map calibration confidence (RC1 Build9.6)
 
 | File | Status | Platform | Build | Notes |

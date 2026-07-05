@@ -18,6 +18,7 @@ import 'package:deniz_app/map/widgets/marine/intelligence/marine_intelligence_he
 import 'package:deniz_app/map/widgets/marine/intelligence/marine_intelligence_premium_layout.dart';
 import 'package:deniz_app/map/widgets/marine/intelligence/marine_scenario_card.dart';
 import 'package:deniz_app/map/widgets/marine/intelligence/marine_timeline_premium_card.dart';
+import 'package:deniz_app/map/widgets/marine/intelligence/coordinate_picker_map_sheet.dart';
 import 'package:deniz_app/map/widgets/marine/intelligence/saved_spots_premium_panel.dart';
 import 'package:deniz_app/map/widgets/marine/marine_catch_dialog.dart';
 import 'package:deniz_app/map/widgets/marine/provider_comparison_panel.dart';
@@ -36,7 +37,6 @@ import 'package:deniz_app/widgets/premium/feedback/premium_dialog.dart';
 import 'package:deniz_app/widgets/premium/feedback/premium_error_fallback.dart';
 import 'package:deniz_app/widgets/premium/feedback/premium_toast.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 
 class MarineIntelligenceScreen extends StatefulWidget {
@@ -519,60 +519,24 @@ class _MarineIntelligenceScreenState extends State<MarineIntelligenceScreen> {
   }
 
   Future<void> _openMapPicker() async {
-    LatLng? picked;
-    await showModalBottomSheet<void>(
+    final currentLat = _parseCoord(_latCtrl, lat: true) ?? widget.initialLat;
+    final currentLon = _parseCoord(_lonCtrl, lat: false) ?? widget.initialLon;
+    final initialPoint = currentLat != null && currentLon != null
+        ? LatLng(currentLat, currentLon)
+        : null;
+    final picked = await showModalBottomSheet<LatLng>(
       context: context,
       isScrollControlled: true,
       backgroundColor: const Color(0xFF0B1A2A),
-      builder: (ctx) {
-        return SizedBox(
-          height: MediaQuery.sizeOf(ctx).height * 0.55,
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: Text(
-                  kMarineMapPickerTitle,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              Expanded(
-                child: FlutterMap(
-                  options: MapOptions(
-                    initialCenter: LatLng(
-                      widget.initialLat ?? 36.8,
-                      widget.initialLon ?? 28.2,
-                    ),
-                    initialZoom: 8,
-                    onTap: (_, point) => picked = point,
-                  ),
-                  children: [
-                    TileLayer(
-                      urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                      userAgentPackageName: 'com.deniz.uygulamasi',
-                    ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: FilledButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  child: Text(kMarineUseCoordinate),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
+      builder: (ctx) => CoordinatePickerMapSheet(
+        initialPoint: initialPoint,
+        fallbackCenter: const LatLng(36.8, 28.2),
+      ),
     );
     if (picked != null) {
       setState(() {
-        _latCtrl.text = picked!.latitude.toStringAsFixed(5);
-        _lonCtrl.text = picked!.longitude.toStringAsFixed(5);
+        _latCtrl.text = picked.latitude.toStringAsFixed(6);
+        _lonCtrl.text = picked.longitude.toStringAsFixed(6);
       });
     }
   }
