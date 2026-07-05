@@ -65,13 +65,13 @@ class HotspotDetailSheet extends StatelessWidget {
       minChildSize: mobile ? 0.35 : 0.48,
       maxChildSize: mobile ? 0.92 : 0.96,
       builder: (context, scrollController) {
-        return Container(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 18),
-          decoration: const BoxDecoration(
-            color: Color(0xFF0A1A2A),
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          child: SingleChildScrollView(
+        return Material(
+          color: const Color(0xFF0A1A2A),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          clipBehavior: Clip.antiAlias,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 18),
+            child: SingleChildScrollView(
             controller: scrollController,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -370,6 +370,7 @@ class HotspotDetailSheet extends StatelessWidget {
               ],
             ),
           ),
+        ),
         );
       },
     );
