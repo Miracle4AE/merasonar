@@ -61,7 +61,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   final LocalStorageService _storage = LocalStorageService();
-  String _serverIp = '127.0.0.1';
+  String _serverIp = AppConfig.defaultApiHost;
   bool _discoveryBusy = false;
   String? _discoveryHint;
   bool _healthChecking = false;
@@ -441,10 +441,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       );
       if (!mounted) return;
       final normalizedHost = AppConfig.normalizeHost(_serverIp);
-      final isLoopback =
-          normalizedHost == '127.0.0.1' ||
-          normalizedHost == 'localhost' ||
-          normalizedHost == '::1';
+      final isLoopback = AppConfig.isLoopbackHost(normalizedHost);
       if (!okNow &&
           !_healthWrongServiceBody &&
           !_shownLocalServerNotRunningHint &&

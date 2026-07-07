@@ -53,23 +53,23 @@ Future<String?> showMerasonarServerHostDialog(
                     decoration: InputDecoration(
                       labelText:
                           'Sunucu IP (port ${AppConfig.defaultApiPort} sabit)',
-                      hintText: 'Örn: 192.168.1.20',
+                      hintText: 'Örn: ${AppConfig.defaultLanHostExample}',
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'İpucu: Mobil cihazda 127.0.0.1 yerine bilgisayarınızın ağ adresini (örn. 192.168.x.x) bu şekilde girebilirsiniz.',
+                    'İpucu: Mobil cihazda yerel makine adresi yerine bilgisayarınızın ağ adresini (örn. ${AppConfig.defaultLanHostExample}) bu şekilde girebilirsiniz.',
                     style: TextStyle(
                       fontSize: 11,
                       color:
                           Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.62),
                     ),
                   ),
-                  if (localhostWarningForMobile(controller.text) !=
+                  if (loopbackWarningForMobile(controller.text) !=
                       null) ...[
                     const SizedBox(height: 8),
                     Text(
-                      localhostWarningForMobile(controller.text)!,
+                      loopbackWarningForMobile(controller.text)!,
                       style: TextStyle(
                         fontSize: 11,
                         color: Colors.orange.shade800,

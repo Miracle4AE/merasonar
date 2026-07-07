@@ -48,9 +48,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       }
       final ip = AppConfig.normalizeHost(_ipController.text);
       if (ip.isNotEmpty &&
-          ip != 'localhost' &&
-          ip != '127.0.0.1' &&
-          ip != '::1') {
+          !AppConfig.isLoopbackHost(ip)) {
         await _storage.saveServerIp(ip);
       }
       await AppPreferences.setOnboardingComplete();

@@ -44,7 +44,7 @@ class MeraSonarDiscoverOutcome {
 
 /// Kayıtlı adres, yaygın kısayollar ve LAN subnet taraması (paralel) ile `/health` arar.
 ///
-/// Yerel güvenlik: fiziksel Android’de localhost taramayı [shouldBlockAndroidLoopbackHost] ile atlar.
+/// Yerel güvenlik: fiziksel Android’de loopback taramayı [shouldBlockAndroidLoopbackHost] ile atlar.
 class BackendDiscoveryService {
   BackendDiscoveryService({
     http.Client? httpClient,
@@ -53,7 +53,7 @@ class BackendDiscoveryService {
     bool? ownsClient,
     /// Test: emulatorde true — [AppConfig.defaultEmulatorLanHost] denenir.
     bool? androidEmulatorOverride,
-    /// Test: masaüstü olarak 127.0.0.1 / localhost deneme.
+    /// Test: masaüstü olarak loopback deneme.
     bool? flutterDesktopOverride,
     /// Test için subnet üçlüleri. Her eleman `['192','168','1']`.
     Future<List<List<String>>> Function()? subnetPrefixOverride,
@@ -306,13 +306,13 @@ class BackendDiscoveryService {
     }
   }
 
-  /// Masaüstü: 127 + localhost. Android emülatör: 10.0.2.2 (fizikselde yok).
+  /// Masaüstü: loopback. Android emülatör: host bridge (fizikselde yok).
   @visibleForTesting
   Future<List<String>> orderedShortcutHosts() async {
     final out = <String>[];
     if (_isFlutterDesktop()) {
-      out.add('127.0.0.1');
-      out.add('localhost');
+      out.add(AppConfig.loopbackIpv4Host);
+      out.add(AppConfig.loopbackHostname);
       if (!kIsWeb && Platform.isWindows) {
         out.add('host.docker.internal');
       }
@@ -333,8 +333,8 @@ List<String> orderedShortcutHostsForTest({
 }) {
   final o = <String>[];
   if (desktop) {
-    o.add('127.0.0.1');
-    o.add('localhost');
+    o.add(AppConfig.loopbackIpv4Host);
+    o.add(AppConfig.loopbackHostname);
   }
   if (androidEmulatorHost) o.add(AppConfig.defaultEmulatorLanHost);
   return o;

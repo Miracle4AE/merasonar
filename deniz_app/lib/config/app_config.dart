@@ -9,6 +9,29 @@ class AppConfig {
   /// Analiz API’si (FastAPI) varsayılan portu; `buildApiBaseUrl` ile birleşir.
   static const int defaultApiPort = 8000;
 
+  /// API ortamı: release/mobil varsayılanı production, yerel geliştirme için:
+  /// `--dart-define=MERASONAR_ENV=development`.
+  static const String apiEnvironment = String.fromEnvironment(
+    'MERASONAR_ENV',
+    defaultValue: 'production',
+  );
+
+  static bool get isDevelopmentEnvironment {
+    final env = apiEnvironment.trim().toLowerCase();
+    return env == 'dev' || env == 'development' || env == 'local';
+  }
+
+  /// Fiziksel telefon ve production build varsayılan canlı backend adresi.
+  static const String productionApiHost = '187.124.183.138';
+  static const String productionApiBaseUrl =
+      'http://$productionApiHost:$defaultApiPort';
+
+  /// Yerel geliştirme adresleri. API adresleri burada merkezi tutulur.
+  static const String developmentApiHost = loopbackIpv4Host;
+  static const String loopbackIpv4Host = '127.0.0.1';
+  static const String loopbackHostname = 'localhost';
+  static const String loopbackIpv6Host = '::1';
+
   /// Uygulama sürümü — pubspec `version` ile senkron tutulmalı.
   static const String appVersion = '1.0.0';
   static const String buildNumber = '1';
@@ -18,6 +41,11 @@ class AppConfig {
 
   /// Android emülatör → geliştirme makinesi (host) köprüsü.
   static const String defaultEmulatorLanHost = '10.0.2.2';
+
+  static String get defaultApiHost =>
+      isDevelopmentEnvironment ? developmentApiHost : productionApiHost;
+
+  static String get defaultApiBaseUrl => buildApiBaseUrl(defaultApiHost);
 
   /// Kullanıcı girdisi / kayıtlı değerlerden host normalize eder.
   ///
@@ -54,12 +82,20 @@ class AppConfig {
   }
 
   static String buildApiBaseUrl(String host, {int? port}) {
-    final h = normalizeHost(host);
+    final normalized = normalizeHost(host);
+    final h = normalized.isEmpty ? defaultApiHost : normalized;
     final p = port ?? defaultApiPort;
-    if (h.isEmpty) {
-      return 'http://127.0.0.1:$p';
-    }
     return 'http://$h:$p';
+  }
+
+  static bool isLoopbackHost(String host) {
+    final h = normalizeHost(host).toLowerCase();
+    return h == loopbackHostname || h == loopbackIpv4Host || h == loopbackIpv6Host;
+  }
+
+  static bool isLocalDevelopmentHost(String host) {
+    final h = normalizeHost(host).toLowerCase();
+    return isLoopbackHost(h) || h == defaultEmulatorLanHost;
   }
 
   static int normalizePort(int? port) {
@@ -76,7 +112,7 @@ class AppConfig {
   /// AppBar / kısa başlık.
   static String mapTitleForHost(String host) {
     final h = normalizeHost(host);
-    return '$productName (${h.isEmpty ? '127.0.0.1' : h}:$defaultApiPort)';
+    return '$productName (${h.isEmpty ? defaultApiHost : h}:$defaultApiPort)';
   }
 
   /// Kalıcı güven bandı — tek satır.

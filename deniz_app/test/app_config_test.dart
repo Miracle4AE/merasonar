@@ -13,7 +13,15 @@ void main() {
     );
     expect(
       AppConfig.buildApiBaseUrl(''),
-      'http://127.0.0.1:${AppConfig.defaultApiPort}',
+      AppConfig.productionApiBaseUrl,
+    );
+  });
+
+  test('production default API base URL VPS adresidir', () {
+    expect(AppConfig.defaultApiHost, AppConfig.productionApiHost);
+    expect(
+      AppConfig.defaultApiBaseUrl,
+      'http://187.124.183.138:${AppConfig.defaultApiPort}',
     );
   });
 }

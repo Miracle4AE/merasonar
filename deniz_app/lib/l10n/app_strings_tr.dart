@@ -1,7 +1,8 @@
 // Türkçe arayüz metinleri — ileride i18n için tek giriş noktası.
 
 // —— Genel ağ / sunucu ——
-const String kMsgSunucuyaUlasilamiyor = 'Şu an sunucuya bağlanılamıyor';
+const String kMsgSunucuyaUlasilamiyor =
+    'Sunucuya ulaşılamıyor. Lütfen internet bağlantınızı kontrol edin.';
 const String kMsgNetworkRetryHint =
     'Aynı Wi‑Fi üzerinden bağlandığınızdan emin olun; sunucu adresini Ayarlar’dan güncelleyebilirsiniz.';
 const String kMsgAnalysisTimeout =
@@ -96,7 +97,7 @@ const String kHomeCardMarineTitle = 'Koordinat Deniz Analizi';
 const String kHomeCardMarineSubtitle =
     'Bir noktanın rüzgar, dalga, ay ve av uygunluğunu kontrol et';
 const String kHomeLanTipAndroid =
-    'İpucu: Telefonda bilgisayarınızın yerel IP adresini yazın (localhost yerine).';
+    'İpucu: Telefonda bilgisayarınızın yerel ağ adresini yazın.';
 const String kHomeFooterServerLabel = 'Sunucu';
 
 const String kDiscoverSearching = 'Sunucu aranıyor…';
@@ -109,7 +110,7 @@ const String kDiscoverNotFound =
     'bağlantı noktasını başka bir uygulama kullanıyorsa kapatın. Aynı Wi‑Fi’deki bilgisayar '
     'IP’sini girebilir veya “Sunucuyu Otomatik Bul” ile yeniden deneyebilirsiniz.';
 
-/// Windows / yerel kullanımda en net yönlendirme (localhost başarısız).
+/// Windows / yerel kullanımda en net yönlendirme.
 const String kServerNotRunningLocalHint =
     'Sunucu çalışmıyor. BASLA.bat veya run_api.cmd ile API’yi başlatın.';
 
@@ -146,9 +147,9 @@ const String kOfflineLiveScoreHintNearby =
 
 /// Onboarding / yerel ağ IP’si önerisi (biçim).
 const String kWrongIpFriendlyHint =
-    'Genelde bilgisayarınızın yerel ağ adresi gerekir (örn. 192.168.x.x). Böyle deneyebilirsiniz.';
+    'Genelde bilgisayarınızın yerel ağ adresi gerekir. Böyle deneyebilirsiniz.';
 
-/// IP zaten 192.168 / 10.x / 172.16–31 gibi yerel ağdayken [home_screen] SnackBar’ı — sorun biçim değil, erişim.
+/// IP zaten yerel ağ biçimindeyken [home_screen] SnackBar’ı — sorun biçim değil, erişim.
 const String kServerHealthFailedLanShapeHint =
     'Bu IP ile sunucuya ulaşılamıyor; adres biçimi doğru olsa da bağlantı kurulamadı. Bilgisayarda API '
     'çalışıyor mu (run_api.cmd), Windows güvenlik duvarı 8000 bağlantı noktasına izin veriyor mu ve telefon '
@@ -180,11 +181,11 @@ const String kServerWizardLater = 'Daha sonra';
 const String kPhotoGuideCueLine =
     'İlk harita analizi buradan — harita görseli seçerek başlayın.';
 
-/// Localhost seçildiğinde — suçlamadan yönlendirme
+/// Loopback seçildiğinde — suçlamadan yönlendirme
 const String kLocalhostMobileHintAndroid =
-    'Telefonda localhost bu cihaza işaret eder; PC’nizi görmek için yerel adres (örn. 192.168.x.x) girmeyi deneyebilirsiniz.';
+    'Telefonda bu yerel adres cihaza işaret eder; PC’nizi görmek için bilgisayarınızın yerel ağ adresini girmeyi deneyebilirsiniz.';
 const String kLocalhostMobileHintIos =
-    'Cihazda localhost Mac veya PC’niz değildir — o makinenin yerel ağ adresini kullanmayı deneyebilirsiniz.';
+    'Cihazdaki yerel adres Mac veya PC’niz değildir — o makinenin yerel ağ adresini kullanmayı deneyebilirsiniz.';
 
 /// Harita/Fotoğraf durum kartı (nadir bağlantı dışı hatalar)
 const String kMapErrorHeadlineUsingCache =
@@ -630,7 +631,7 @@ const String kOnboardingBulletGpx = 'GPX olarak dışa aktarma';
 
 const String kOnboardingServerTitle = 'Analiz sunucusu';
 const String kOnboardingServerBody =
-    'Telefondan test ederken arka uç bilgisayardaysa aşağıya bilgisayarın yerel ağ IP adresini girin. Aynı cihazda çalışan API için 127.0.0.1 yeterlidir; boş bırakırsanız cihaz IP’si otomatik denenecektir.';
+    'Telefondan test ederken arka uç bilgisayardaysa aşağıya bilgisayarın yerel ağ IP adresini girin. Boş bırakırsanız varsayılan sunucu adresi kullanılacaktır.';
 
 const String kOnboardingLegalHeading = 'Feragat';
 const String kOnboardingReadFullText = 'Tam metni oku';
@@ -639,7 +640,7 @@ const String kOnboardingLegalAck =
 
 String kOnboardingServerIpDecorationLabel(int port) =>
     'Sunucu IP (port $port sabit)';
-const String kOnboardingServerIpHint = 'Örn. 192.168.1.20';
+const String kOnboardingServerIpHint = 'Örn. canlı sunucu veya yerel ağ adresi';
 
 // Sunucu IP diyaloğu
 const String kServerDialogTitle = 'Sunucu adresi';
@@ -740,9 +741,9 @@ String localizeSeaDataSource(String raw) {
   }
 }
 
-/// Android localhost uyarısı (SnackBar vb.).
+/// Android loopback uyarısı (SnackBar vb.).
 String kAndroidLoopbackBlocked(String pcLanHostPort, String emulatorHostPort) =>
-    'Bu telefonda "localhost" ve 127.0.0.1 bu cihazın kendisine işaret eder; bilgisayarınıza değil. '
+    'Bu telefonda yerel adres bu cihazın kendisine işaret eder; bilgisayarınıza değil. '
     'Örnek: $pcLanHostPort gibi LAN adresini yazın. Emülatör ipucu: $emulatorHostPort.';
 
 /// OBIS/GBIF vb. özet metni öncesi çerçeve (ham metin ayrı blokta gösterilir).

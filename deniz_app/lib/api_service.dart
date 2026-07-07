@@ -158,7 +158,7 @@ class ApiService {
     } on TimeoutException {
       return HealthCheckResult(
         ok: false,
-        message: 'Sunucuya erişim zaman aşımına uğradı.',
+        message: kMsgSunucuyaUlasilamiyor,
         latencyMs: DateTime.now().difference(started).inMilliseconds,
       );
     } on SocketException catch (e) {
@@ -171,7 +171,7 @@ class ApiService {
       log('health failed: $e', name: 'ApiService', stackTrace: st);
       return HealthCheckResult(
         ok: false,
-        message: 'Sunucuya ulaşılamıyor.',
+        message: kMsgSunucuyaUlasilamiyor,
         latencyMs: DateTime.now().difference(started).inMilliseconds,
       );
     }
@@ -2334,13 +2334,9 @@ ApiErrorType _socketType(SocketException e) {
 String _socketMessage(SocketException e) {
   switch (_socketType(e)) {
     case ApiErrorType.invalidAddressOrPort:
-      return 'Adres ya da porta ulaşılamadık. Yerel IP (örn. 192.168.x.x) girmeyi deneyebilirsiniz.';
     case ApiErrorType.backendUnavailable:
-      return 'Bağlantı kuruldu; arka uç yanıt vermiyor. Programı başlatmayı kontrol edip tekrar deneyebilirsiniz.';
     case ApiErrorType.networkUnavailable:
-      return 'Şu an ağa çıkılmıyor gibi görünüyor. Aynı Wi‑Fi üzerinden olduğunuzdan emin olmayı deneyebilirsiniz.';
     case ApiErrorType.timeout:
-      return 'Şu anda yanıt uzun sürdü — daha sonra yeniden deneyebilirsiniz.';
     case ApiErrorType.serverUnreachable:
       return kMsgSunucuyaUlasilamiyor;
     default:

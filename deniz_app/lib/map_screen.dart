@@ -200,7 +200,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   }
 
   String? _lastError;
-  String _serverIp = '127.0.0.1';
+  String _serverIp = AppConfig.defaultApiHost;
   bool _serverDiscoverBusy = false;
   bool _mapHealthChecking = false;
   bool? _mapHealthOkLast;
@@ -296,7 +296,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     _hotspotFocusId.addListener(_publishWorldMapLayout);
     final configuredIp = widget.serverIp.trim();
     final normalized = AppConfig.normalizeHost(configuredIp);
-    _serverIp = normalized.isEmpty ? '127.0.0.1' : normalized;
+    _serverIp = normalized.isEmpty ? AppConfig.defaultApiHost : normalized;
     _rebuildApiService();
     _initializeScreen();
   }
@@ -669,7 +669,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
   }
 
   Future<void> _autoDetectServerIp() async {
-    // Windows: yerel API (127.0.0.1) korunsun; LAN IP firewall ile saglik kontrolu bozulmasin
+    // Windows: yerel API host'u korunsun; LAN IP firewall ile saglik kontrolu bozulmasin.
     if (Platform.isWindows) return;
     try {
       final interfaces = await NetworkInterface.list(
@@ -691,9 +691,7 @@ class _MapScreenState extends State<MapScreen> with TickerProviderStateMixin {
     final normalized = AppConfig.normalizeHost(saved);
     if (normalized.isEmpty ||
         normalized == _serverIp ||
-        normalized == 'localhost' ||
-        normalized == '127.0.0.1' ||
-        normalized == '::1') {
+        AppConfig.isLoopbackHost(normalized)) {
       return;
     }
     setState(() => _serverIp = normalized);

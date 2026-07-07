@@ -159,7 +159,7 @@ class _PremiumSettingsScreenState extends State<PremiumSettingsScreen> {
   }
 
   Future<void> _resetConnectionDefaults() async {
-    _hostController.text = '127.0.0.1';
+    _hostController.text = AppConfig.defaultApiHost;
     _portController.text = AppConfig.defaultApiPort.toString();
     await _applyDraft(
       _draft.copyWith(serverPort: AppConfig.defaultApiPort),
@@ -436,9 +436,9 @@ class _PremiumSettingsScreenState extends State<PremiumSettingsScreen> {
           children: [
             TextField(
               controller: _hostController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Sunucu adresi',
-                hintText: 'Örn: 192.168.1.20',
+                hintText: 'Örn: ${AppConfig.defaultLanHostExample}',
               ),
               onChanged: (_) => setState(() {}),
             ),
@@ -452,10 +452,10 @@ class _PremiumSettingsScreenState extends State<PremiumSettingsScreen> {
               ),
               onChanged: (_) => setState(() {}),
             ),
-            if (localhostWarningForMobile(_hostController.text) != null) ...[
+            if (loopbackWarningForMobile(_hostController.text) != null) ...[
               const SizedBox(height: AppSpacing.sm),
               Text(
-                localhostWarningForMobile(_hostController.text)!,
+                loopbackWarningForMobile(_hostController.text)!,
                 style: TextStyle(color: Colors.orange.shade300, fontSize: 12),
               ),
             ],
